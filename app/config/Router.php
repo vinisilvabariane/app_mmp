@@ -4,6 +4,8 @@ namespace App\config;
 
 use App\routers\HomeRouter;
 use App\routers\FormsRouter;
+use App\routers\LoginRouter;
+use App\routers\AdminRouter;
 
 class Router
 {
@@ -12,9 +14,13 @@ class Router
         $basePath = $this->extractBasePath($scriptName);
         $routePath = $this->extractRoutePath($requestUri, $basePath);
         $routes = [
-            '/' => [HomeRouter::class, 'index'],
+            '/' => [LoginRouter::class, 'index'],
+            '/login' => [LoginRouter::class, 'index'],
+            '/login/authenticate' => [LoginRouter::class, 'authenticate'],
+            '/logout' => [LoginRouter::class, 'logout'],
             '/home' => [HomeRouter::class, 'index'],
             '/forms' => [FormsRouter::class, 'index'],
+            '/admin' => [AdminRouter::class, 'index'],
         ];
         if (!isset($routes[$routePath])) {
             http_response_code(404);
@@ -51,7 +57,7 @@ class Router
         if ($path === '' || $path === false || $path === '/index.php') {
             $queryPage = isset($_GET['page']) ? trim((string)$_GET['page']) : '';
             $queryRoute = strtolower($queryPage);
-            if (in_array($queryRoute, ['home', 'forms'], true)) {
+            if (in_array($queryRoute, ['home', 'forms', 'admin'], true)) {
                 return '/' . $queryRoute;
             }
             return '/';

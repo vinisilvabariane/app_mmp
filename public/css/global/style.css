@@ -37,6 +37,11 @@ body {
     padding-bottom: 0;
 }
 
+.login-page {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
 .btn-primary {
     --bs-btn-color: #fff;
     --bs-btn-bg: var(--color3);
@@ -321,6 +326,170 @@ body {
 .home-rebuilt {
     display: grid;
     gap: 18px;
+}
+
+.login-layout {
+    min-height: 100vh;
+    width: min(1180px, calc(100% - 32px));
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(360px, 430px);
+    align-items: stretch;
+    gap: 18px;
+    padding: 28px 0;
+}
+
+.login-showcase,
+.login-panel {
+    border: 1px solid var(--stroke);
+    border-radius: 24px;
+    box-shadow: var(--soft-shadow);
+}
+
+.login-showcase {
+    position: relative;
+    overflow: hidden;
+    padding: 38px;
+    background:
+        radial-gradient(circle at 84% 20%, rgba(154, 204, 119, 0.26), transparent 30%),
+        radial-gradient(circle at 15% 85%, rgba(69, 147, 108, 0.24), transparent 34%),
+        linear-gradient(135deg, rgba(31, 10, 29, 0.97), rgba(51, 79, 83, 0.95));
+    color: #f4f8eb;
+}
+
+.login-showcase h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(2rem, 4.6vw, 4rem);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+    margin: 0 0 14px;
+    max-width: 760px;
+}
+
+.login-showcase .hero-copy {
+    max-width: 620px;
+    margin-bottom: 28px;
+}
+
+.login-feature-grid {
+    display: grid;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+.login-feature-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    padding: 16px 18px;
+    border: 1px solid rgba(248, 249, 241, 0.12);
+    border-radius: 18px;
+    background: rgba(248, 249, 241, 0.08);
+    backdrop-filter: blur(6px);
+}
+
+.login-feature-card h2 {
+    margin: 0 0 4px;
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.login-feature-card p {
+    margin: 0;
+    color: rgba(244, 248, 235, 0.82);
+}
+
+.login-feature-icon {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(154, 204, 119, 0.34), rgba(69, 147, 108, 0.34));
+    font-size: 1.1rem;
+}
+
+.login-panel {
+    align-self: center;
+    padding: 30px 28px;
+    background:
+        linear-gradient(160deg, rgba(248, 249, 241, 0.98), rgba(236, 243, 226, 0.96));
+}
+
+.login-panel-head {
+    margin-bottom: 22px;
+}
+
+.login-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    margin-bottom: 12px;
+    border-radius: 999px;
+    background: rgba(154, 204, 119, 0.26);
+    color: var(--color1);
+    font-family: 'Sora', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.login-panel-head h2 {
+    margin: 0 0 8px;
+    font-family: 'Sora', sans-serif;
+    font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+    color: var(--color1);
+}
+
+.login-panel-head p,
+.login-panel-foot p {
+    margin: 0;
+    color: var(--color2);
+}
+
+.login-form .form-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    color: var(--color2);
+}
+
+.login-form .form-control {
+    border: 1px solid rgba(51, 79, 83, 0.22);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.login-form .form-control:focus {
+    border-color: rgba(69, 147, 108, 0.7);
+    box-shadow: 0 0 0 0.2rem rgba(69, 147, 108, 0.15);
+}
+
+.login-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+}
+
+.login-submit i {
+    font-size: 1.2rem;
+}
+
+.login-submit.is-loading {
+    opacity: 0.9;
+    cursor: wait;
+}
+
+.login-panel-foot {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(51, 79, 83, 0.12);
+    font-size: 0.92rem;
 }
 
 .edu-hero {
@@ -662,6 +831,11 @@ body {
     .edu-split {
         grid-template-columns: 1fr;
     }
+
+    .login-layout {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
 }
 
 @media (max-width: 768px) {
@@ -704,6 +878,17 @@ body {
         width: min(92vw, 330px);
         right: calc(-1 * min(92vw, 330px) - 10px);
         height: calc(100vh - 130px);
+    }
+
+    .login-layout {
+        width: calc(100% - 24px);
+        padding: 18px 0 24px;
+    }
+
+    .login-showcase,
+    .login-panel {
+        padding: 22px;
+        border-radius: 20px;
     }
 }
 
