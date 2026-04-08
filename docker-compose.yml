@@ -1,17 +1,39 @@
-version: '3.8'
-
 services:
   web:
     container_name: app_map_my_path
     build: .
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
       - .:/var/www/html
     env_file:
       - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  mysql:
+    image: mysql:8.0
+    container_name: app_map_my_path_mysql
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-app_mmp}
+      MYSQL_USER: ${DB_USERNAME:-app_mmp}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-app_mmp}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   hotreload:
     image: node:20-alpine
@@ -30,4 +52,7 @@ services:
       - "3000:3000"
     depends_on:
       - web
+
+volumes:
+  mysql_data:
 
