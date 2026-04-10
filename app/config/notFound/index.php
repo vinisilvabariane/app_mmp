@@ -9,7 +9,7 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lorem Ipsum</title>
+    <title>Ops!</title>
     <link rel="icon" type="image/png" href="<?= $basePath ?>/public/img/com-fundo-maior.png" sizes="512x512">
     <link rel="apple-touch-icon" href="<?= $basePath ?>/public/img/com-fundo-maior.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -51,11 +51,11 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
         <div class="card shadow-sm register-config-card">
             <div class="card-body p-4 p-md-5">
                 <h1 class="system-title">404</h1>
-                <p class="h4 mb-2">Lorem ipsum</p>
-                <p class="text-muted mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                <p class="h4 mb-2">Pagina não encontrada</p>
+                <p class="text-muted mb-4">Volte para a página inicial</p>
                 <div class="d-flex flex-wrap justify-content-center gap-2">
                     <a href="<?= $basePath ?>/home" class="btn btn-primary">
-                        <i class="bi bi-house-door me-2"></i>Lorem
+                        <i class="bi bi-house-door me-2"></i>Início
                     </a>
                 </div>
             </div>

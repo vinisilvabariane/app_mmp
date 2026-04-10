@@ -6,6 +6,7 @@ use App\routers\HomeRouter;
 use App\routers\FormsRouter;
 use App\routers\LoginRouter;
 use App\routers\AdminRouter;
+use App\routers\TesteRouter;
 
 class Router
 {
@@ -21,6 +22,7 @@ class Router
             '/home' => [HomeRouter::class, 'index'],
             '/forms' => [FormsRouter::class, 'index'],
             '/admin' => [AdminRouter::class, 'index'],
+            '/teste' => [TesteRouter::class, 'index'],
         ];
         if (!isset($routes[$routePath])) {
             http_response_code(404);

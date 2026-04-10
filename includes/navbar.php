@@ -5,6 +5,7 @@ $homeUrl = ($basePath !== '' ? $basePath : '') . '/home';
 $formsUrl = ($basePath !== '' ? $basePath : '') . '/forms';
 $logoutUrl = ($basePath !== '' ? $basePath : '') . '/logout';
 $adminUrl = ($basePath !== '' ? $basePath : '') . '/admin';
+$testeUrl = ($basePath !== '' ? $basePath : '') . '/teste';
 ?>
 <header class="top-nav-shell">
     <div class="top-nav-inner">
@@ -22,9 +23,13 @@ $adminUrl = ($basePath !== '' ? $basePath : '') . '/admin';
                 class="nav-link-item <?= $currentRoute === '/forms' ? 'active' : '' ?>">
                 Ipsum
             </a>
+            <a href="<?= $testeUrl ?>"
+                class="nav-link-item <?= $currentRoute === '/teste' ? 'active' : '' ?>">
+                Teste
+            </a>
             <a href="<?= $adminUrl ?>"
                 class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
-                ADMIN
+                Admin
             </a>
             <a href="<?= $logoutUrl ?>" class="nav-link-item">
                 Sair
