@@ -24,6 +24,26 @@ class LoginRouter
         (new LoginController())->authenticate();
     }
 
+    public function showChangePassword(): void
+    {
+        (new LoginController())->showChangePassword();
+    }
+
+    public function changePassword(): void
+    {
+        (new LoginController())->changePassword();
+    }
+
+    public function requestPasswordReset(): void
+    {
+        (new LoginController())->requestPasswordReset();
+    }
+
+    public function register(): void
+    {
+        (new LoginController())->register();
+    }
+
     public function logout(): void
     {
         (new LoginController())->logout();

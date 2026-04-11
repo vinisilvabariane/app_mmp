@@ -485,6 +485,50 @@ body {
     cursor: wait;
 }
 
+.login-secondary-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 14px;
+    margin: -4px 0 14px;
+}
+
+.login-link-btn {
+    color: var(--color2);
+    font-family: 'Sora', sans-serif;
+    font-size: 0.84rem;
+    text-decoration: none;
+}
+
+.login-reset-panel {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+    padding: 14px;
+    border: 1px solid rgba(51, 79, 83, 0.14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.login-reset-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+}
+
+.login-register-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.login-register-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.login-inline-button {
+    justify-self: start;
+}
+
 .login-panel-foot {
     margin-top: 18px;
     padding-top: 16px;

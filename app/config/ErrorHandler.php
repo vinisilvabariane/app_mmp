@@ -33,7 +33,8 @@ class ErrorHandler
 
     private function createErrorMessage(int $errno, string $errstr, string $errfile, int $errline, array $trace): string
     {
-        $username = $_SESSION['username'] ?? 'N/A';
+        $authUser = $_SESSION['auth_user'] ?? [];
+        $username = is_array($authUser) && isset($authUser['email']) ? (string) $authUser['email'] : 'N/A';
         $errorInfo = " *Error Alert:* \n";
         $errorInfo .= "```\n";
         $errorInfo .= "Date: " . date("d/m/Y H:i:s") . "\n";

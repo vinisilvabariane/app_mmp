@@ -18,10 +18,10 @@ class Auth
         return self::check() ? $_SESSION[self::SESSION_KEY] : null;
     }
 
-    public static function attempt(string $username, string $password): bool
+    public static function attempt(string $email, string $password): bool
     {
         $userModel = new UserModel();
-        $user = $userModel->findByUsername(trim($username));
+        $user = $userModel->findByEmail(trim($email));
 
         if ($user === null || !self::isActive($user)) {
             return false;
@@ -34,9 +34,9 @@ class Auth
 
         $_SESSION[self::SESSION_KEY] = [
             'id' => (int) ($user['id'] ?? 0),
-            'username' => (string) ($user['username'] ?? ''),
             'email' => isset($user['email']) ? (string) $user['email'] : null,
             'full_name' => isset($user['full_name']) ? (string) $user['full_name'] : null,
+            'reset_required' => (int) ($user['reset_required'] ?? 0) === 1,
             'login_at' => date(DATE_ATOM),
         ];
 
@@ -51,6 +51,10 @@ class Auth
     public static function requireAuth(string $basePath = ''): void
     {
         if (self::check()) {
+            if (self::needsPasswordReset()) {
+                header('Location: ' . self::url($basePath, '/login/change-password'));
+                exit;
+            }
             return;
         }
 
@@ -64,8 +68,28 @@ class Auth
             return;
         }
 
+        if (self::needsPasswordReset()) {
+            header('Location: ' . self::url($basePath, '/login/change-password'));
+            exit;
+        }
+
         header('Location: ' . self::url($basePath, '/home'));
         exit;
+    }
+
+    public static function needsPasswordReset(): bool
+    {
+        $user = self::user();
+        return is_array($user) && !empty($user['reset_required']);
+    }
+
+    public static function markPasswordUpdated(): void
+    {
+        if (!self::check()) {
+            return;
+        }
+
+        $_SESSION[self::SESSION_KEY]['reset_required'] = false;
     }
 
     private static function isActive(array $user): bool

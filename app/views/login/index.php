@@ -29,9 +29,9 @@ unset($_SESSION['login_error']);
     <main id="main-content" class="login-layout fade-in-up">
         <section class="login-showcase">
             <p class="hero-kicker">Map My Path</p>
-            <h1>Acompanhe jornadas e mantenha seu fluxo centralizado.</h1>
+            <h1>Crie trilhas de estudos personalizadas.</h1>
             <p class="hero-copy">
-                Entre para acessar os formulários, acompanhar os caminhos mapeados e seguir o mesmo ecossistema visual já aplicado no front.
+                Aplicativo para criar trilhas de estudos personalizadas, com foco em resultados. Ideal para estudantes que buscam otimizar seu aprendizado e alcançar seus objetivos de forma eficiente.
             </p>
 
             <div class="login-feature-grid">
@@ -46,14 +46,21 @@ unset($_SESSION['login_error']);
                     <span class="login-feature-icon"><i class="bi bi-shield-check"></i></span>
                     <div>
                         <h2>Acesso protegido</h2>
-                        <p>Autenticação simples com sessão para restringir as rotas internas.</p>
+                        <p>Autenticação para garantir a privacidade dos dados.</p>
                     </div>
                 </article>
                 <article class="login-feature-card">
                     <span class="login-feature-icon"><i class="bi bi-graph-up-arrow"></i></span>
                     <div>
-                        <h2>Continuidade visual</h2>
-                        <p>A mesma paleta, tipografia e linguagem da home e dos formulários.</p>
+                        <h2>Estude de maneira inteligente</h2>
+                        <p>Descubra a melhor forma de obter resultados!</p>
+                    </div>
+                </article>
+                <article class="login-feature-card">
+                    <span class="login-feature-icon"><i class="bi bi-lightbulb"></i></span>
+                    <div>
+                        <h2>Dicas inteligentes</h2>
+                        <p>Receba sugestões personalizadas para otimizar seu aprendizado.</p>
                     </div>
                 </article>
             </div>
@@ -65,28 +72,63 @@ unset($_SESSION['login_error']);
                 <h2>Bem-vindo de volta</h2>
                 <p>Use suas credenciais para continuar.</p>
             </div>
-
             <form
                 id="login-form"
                 class="login-form"
                 method="POST"
                 action="<?= $basePath ?>/login/authenticate"
+                data-base-path="<?= $basePath ?>"
                 novalidate>
                 <div
                     id="error-message"
                     class="alert alert-warning<?= $loginError !== '' ? '' : ' d-none' ?>"
                     role="alert"><?= htmlspecialchars($loginError, ENT_QUOTES, 'UTF-8') ?></div>
-
                 <div class="mb-3">
-                    <label for="user" class="form-label">Usuario</label>
-                    <input type="text" class="form-control" id="user" name="user" autocomplete="username" required>
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" autocomplete="email" required>
                 </div>
-
                 <div class="mb-3">
                     <label for="password" class="form-label">Senha</label>
                     <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required>
                 </div>
-
+                <div class="login-secondary-actions">
+                    <button type="button" class="btn btn-link px-0 login-link-btn" id="toggle-reset-password">
+                        Resetar senha
+                    </button>
+                    <button type="button" class="btn btn-link px-0 login-link-btn" id="toggle-register-user">
+                        Criar conta 
+                    </button>
+                </div>
+                <div class="login-reset-panel d-none" id="reset-password-panel">
+                    <label for="reset-email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="reset-email" placeholder="Digite o email da conta">
+                    <button type="button" class="btn btn-outline-primary login-inline-button" id="request-password-reset">Enviar senha</button>
+                    <small class="text-muted">Uma senha aleatoria sera enviada por email e a troca sera obrigatoria no proximo login.</small>
+                </div>
+                <div class="login-reset-panel d-none" id="register-user-panel">
+                    <div class="login-register-grid">
+                        <div>
+                            <label for="register-full-name" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="register-full-name" placeholder="Nome completo">
+                        </div>
+                        <div>
+                            <label for="register-email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="register-email" placeholder="voce@email.com">
+                        </div>
+                        <div>
+                            <label for="register-password" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="register-password" placeholder="Minimo 8 caracteres">
+                        </div>
+                        <div>
+                            <label for="register-password-confirm" class="form-label">Confirmar senha</label>
+                            <input type="password" class="form-control" id="register-password-confirm" placeholder="Repita a senha">
+                        </div>
+                    </div>
+                    <div class="login-register-actions">
+                        <button type="button" class="btn btn-outline-primary" id="register-user-button">Criar conta</button>
+                    </div>
+                    <small class="text-muted">A conta sera criada imediatamente e ja podera usar o login normal.</small>
+                </div>
                 <button type="submit" class="btn btn-primary w-100 login-submit" data-idle-label="Entrar">
                     <span class="login-submit-text">Entrar</span>
                     <i class="bi bi-arrow-right-short"></i>
@@ -94,7 +136,6 @@ unset($_SESSION['login_error']);
             </form>
         </section>
     </main>
-
     <?php include_once __DIR__ . '/../../../includes/dependencies.php'; ?>
     <script src="<?= $basePath ?>/public/js/login/script.js?v=<?= $loginScriptVersion ?>"></script>
 </body>
