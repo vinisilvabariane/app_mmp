@@ -1,6 +1,6 @@
 services:
   web:
-    container_name: app_map_my_path
+    container_name: app_mmp
     build: .
     restart: unless-stopped
     ports:
@@ -17,41 +17,24 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: app_map_my_path_mysql
+    container_name: db_mmp
     restart: unless-stopped
     ports:
       - "3306:3306"
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-app_mmp}
-      MYSQL_USER: ${DB_USERNAME:-app_mmp}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-app_mmp}
+      MYSQL_DATABASE: ${DB_NAME:-db_mmp}
+      MYSQL_USER: ${DB_USER:-app_mmp}
+      MYSQL_PASSWORD: ${DB_PASS:-app_mmp}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD:-root}"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
-
-  hotreload:
-    image: node:20-alpine
-    working_dir: /workspace
-    command: >
-      sh -lc "npx browser-sync start
-      --proxy web:80
-      --files 'index.php,app/**/*.php,includes/**/*.php,public/css/**/*.css,public/js/**/*.js'
-      --port 3000
-      --host 0.0.0.0
-      --no-open
-      --no-ui"
-    volumes:
-      - .:/workspace
-    ports:
-      - "3000:3000"
-    depends_on:
-      - web
 
 volumes:
   mysql_data:

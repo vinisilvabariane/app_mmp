@@ -9,13 +9,13 @@ class Connection
 {
     public static function connect(): PDO
     {
-        $driver = self::env('DB_DRIVER', 'mysql');
-        $host = self::env('DB_HOST', '127.0.0.1');
-        $port = self::env('DB_PORT', '3306');
-        $database = self::env('DB_NAME', '');
-        $username = self::env('DB_USER', 'root');
-        $password = self::env('DB_PASS', '');
-        $charset = self::env('DB_CHARSET', 'utf8mb4');
+        $driver = Env::get('DB_DRIVER', 'mysql');
+        $host = Env::get('DB_HOST', '127.0.0.1');
+        $port = Env::get('DB_PORT', '3306');
+        $database = Env::get('DB_NAME', '');
+        $username = Env::get('DB_USER', 'root');
+        $password = Env::get('DB_PASS', '');
+        $charset = Env::get('DB_CHARSET', 'utf8mb4');
 
         $dsn = sprintf(
             '%s:host=%s;port=%s;dbname=%s;charset=%s',
@@ -34,30 +34,5 @@ class Connection
         } catch (PDOException $e) {
             throw new PDOException('Database connection failed: ' . $e->getMessage(), (int) $e->getCode(), $e);
         }
-    }
-
-    private static function env(string $key, string $default = ''): string
-    {
-        $value = getenv($key);
-
-        if (is_string($value) && $value !== '') {
-            return $value;
-        }
-
-        static $envCache = null;
-
-        if ($envCache === null) {
-            $envPath = dirname(__DIR__, 2) . '/.env';
-            $envCache = [];
-
-            if (is_file($envPath)) {
-                $parsed = parse_ini_file($envPath, false, INI_SCANNER_RAW);
-                if (is_array($parsed)) {
-                    $envCache = $parsed;
-                }
-            }
-        }
-
-        return isset($envCache[$key]) ? (string) $envCache[$key] : $default;
     }
 }

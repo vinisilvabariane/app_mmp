@@ -2,6 +2,8 @@
 
 namespace App\config;
 
+use App\models\UserModel;
+
 class Auth
 {
     private const SESSION_KEY = 'auth_user';
@@ -18,21 +20,23 @@ class Auth
 
     public static function attempt(string $username, string $password): bool
     {
-        $credentials = self::credentials();
+        $userModel = new UserModel();
+        $user = $userModel->findByUsername(trim($username));
 
-        if ($username !== $credentials['username']) {
+        if ($user === null || !self::isActive($user)) {
             return false;
         }
 
-        $storedPassword = $credentials['password'];
-        $passwordMatches = password_verify($password, $storedPassword) || hash_equals($storedPassword, $password);
-
-        if (!$passwordMatches) {
+        $storedPassword = (string) ($user['password_hash'] ?? '');
+        if ($storedPassword === '' || !password_verify($password, $storedPassword)) {
             return false;
         }
 
         $_SESSION[self::SESSION_KEY] = [
-            'username' => $credentials['username'],
+            'id' => (int) ($user['id'] ?? 0),
+            'username' => (string) ($user['username'] ?? ''),
+            'email' => isset($user['email']) ? (string) $user['email'] : null,
+            'full_name' => isset($user['full_name']) ? (string) $user['full_name'] : null,
             'login_at' => date(DATE_ATOM),
         ];
 
@@ -64,40 +68,9 @@ class Auth
         exit;
     }
 
-    private static function credentials(): array
+    private static function isActive(array $user): bool
     {
-        $username = self::env('AUTH_USER', 'admin');
-        $password = self::env('AUTH_PASS', 'admin123');
-
-        return [
-            'username' => trim($username),
-            'password' => trim($password),
-        ];
-    }
-
-    private static function env(string $key, string $default = ''): string
-    {
-        $value = getenv($key);
-
-        if (is_string($value) && $value !== '') {
-            return $value;
-        }
-
-        static $envCache = null;
-
-        if ($envCache === null) {
-            $envPath = dirname(__DIR__, 2) . '/.env';
-            $envCache = [];
-
-            if (is_file($envPath)) {
-                $parsed = parse_ini_file($envPath, false, INI_SCANNER_RAW);
-                if (is_array($parsed)) {
-                    $envCache = $parsed;
-                }
-            }
-        }
-
-        return isset($envCache[$key]) ? (string)$envCache[$key] : $default;
+        return (int) ($user['is_active'] ?? 0) === 1;
     }
 
     private static function url(string $basePath, string $path): string
