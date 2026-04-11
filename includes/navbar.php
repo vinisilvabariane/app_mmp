@@ -12,7 +12,7 @@ $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
     <div class="top-nav-inner">
         <a href="<?= $homeUrl ?>" class="brand-mark" aria-label="Lorem Ipsum Lorem">
             <span class="brand-dot"></span>
-            <span class="brand-text">Lorem Ipsum</span>
+            <span class="brand-text">Map My Path</span>
         </a>
         <nav id="sidebar" class="top-nav" aria-label="Lorem ipsum">
             <a href="<?= $homeUrl ?>"
