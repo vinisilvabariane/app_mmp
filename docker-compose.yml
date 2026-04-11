@@ -12,6 +12,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      mysql-init:
+        condition: service_completed_successfully
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -35,6 +37,28 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+
+  mysql-init:
+    image: mysql:8.0
+    container_name: db_mmp_init
+    restart: "no"
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./docker/mysql/init:/init:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        mysql -hmysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" -e "CREATE DATABASE IF NOT EXISTS \`$${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+        for file in /init/*.sql; do
+          echo "Applying $$file"
+          mysql -hmysql -uroot -p"$${MYSQL_ROOT_PASSWORD}" "$${DB_NAME}" < "$$file"
+        done
 
 volumes:
   mysql_data:
