@@ -15,4 +15,10 @@ class ChatRouter
                 $controller->index();
         }
     }
+
+    public function message(): void
+    {
+        $controller = new ChatController();
+        $controller->message();
+    }
 }

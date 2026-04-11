@@ -25,6 +25,7 @@ class Router
             '/admin' => [AdminRouter::class, 'index'],
             '/teste' => [TesteRouter::class, 'index'],
             '/chat' => [ChatRouter::class, 'index'],
+            '/chat/message' => [ChatRouter::class, 'message'],
         ];
         if (!isset($routes[$routePath])) {
             http_response_code(404);

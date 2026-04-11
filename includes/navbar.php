@@ -6,6 +6,7 @@ $formsUrl = ($basePath !== '' ? $basePath : '') . '/forms';
 $logoutUrl = ($basePath !== '' ? $basePath : '') . '/logout';
 $adminUrl = ($basePath !== '' ? $basePath : '') . '/admin';
 $testeUrl = ($basePath !== '' ? $basePath : '') . '/teste';
+$chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
 ?>
 <header class="top-nav-shell">
     <div class="top-nav-inner">
@@ -13,7 +14,6 @@ $testeUrl = ($basePath !== '' ? $basePath : '') . '/teste';
             <span class="brand-dot"></span>
             <span class="brand-text">Lorem Ipsum</span>
         </a>
-
         <nav id="sidebar" class="top-nav" aria-label="Lorem ipsum">
             <a href="<?= $homeUrl ?>"
                 class="nav-link-item <?= ($currentRoute === '/' || $currentRoute === '/home') ? 'active' : '' ?>">
@@ -23,13 +23,13 @@ $testeUrl = ($basePath !== '' ? $basePath : '') . '/teste';
                 class="nav-link-item <?= $currentRoute === '/forms' ? 'active' : '' ?>">
                 Ipsum
             </a>
-            <a href="<?= $testeUrl ?>"
-                class="nav-link-item <?= $currentRoute === '/teste' ? 'active' : '' ?>">
-                Teste
-            </a>
             <a href="<?= $adminUrl ?>"
                 class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
                 Admin
+            </a>
+            <a href="<?= $chatUrl ?>"
+                class="nav-link-item <?= $currentRoute === '/chat' ? 'active' : '' ?>">
+                Chat
             </a>
             <a href="<?= $logoutUrl ?>" class="nav-link-item">
                 Sair

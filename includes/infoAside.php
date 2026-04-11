@@ -1,22 +1,23 @@
-﻿<aside id="aside-panel">
+<?php $asideBasePath = isset($basePath) ? (string) $basePath : ''; ?>
+<aside id="aside-panel">
     <div class="aside-header">
-        <h4><i class="bi bi-chat-dots me-2 aside-icon"></i> Lorem Bot</h4>
-        <button class="btn btn-sm btn-outline-secondary" id="closeAside">
-            <i class="bi bi-x"></i>
-        </button>
+        <h4><i class="bi bi-chat-dots me-2 aside-icon"></i> Assistente</h4>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-primary" id="chatbot-reset" type="button">
+                <i class="bi bi-arrow-counterclockwise"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" id="closeAside" type="button">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
     </div>
     <div class="chatbot-wrap">
         <div id="chatbot-messages" class="chatbot-messages" aria-live="polite">
-            <div class="chat-msg bot">Lorem ipsum. Digite uma pergunta curta.</div>
+            <div class="chat-msg bot" data-role="assistant">Ola. Posso ajudar com duvidas rapidas em qualquer pagina.</div>
         </div>
-        <div class="chatbot-quick">
-            <button type="button" class="btn btn-sm btn-outline-primary chatbot-quick-btn" data-question="lorem one">Lorem one</button>
-            <button type="button" class="btn btn-sm btn-outline-primary chatbot-quick-btn" data-question="lorem two">Lorem two</button>
-            <button type="button" class="btn btn-sm btn-outline-primary chatbot-quick-btn" data-question="lorem three">Lorem three</button>
-        </div>
-        <form id="chatbot-form" class="chatbot-form">
-            <input type="text" id="chatbot-input" class="form-control" placeholder="Digite: lorem one, lorem two..." autocomplete="off">
-            <button type="submit" class="btn btn-primary">
+        <form id="chatbot-form" class="chatbot-form" data-endpoint="<?= $asideBasePath ?>/chat/message">
+            <input type="text" id="chatbot-input" class="form-control" placeholder="Digite sua pergunta..." autocomplete="off">
+            <button type="submit" class="btn btn-primary" id="chatbot-submit">
                 <i class="bi bi-send"></i>
             </button>
         </form>

@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     'use strict'
 
     const toggleAsideBtn = document.getElementById('toggleAside')
@@ -39,59 +39,103 @@
     const messagesEl = document.getElementById('chatbot-messages')
     const formEl = document.getElementById('chatbot-form')
     const inputEl = document.getElementById('chatbot-input')
-    const quickBtns = document.querySelectorAll('.chatbot-quick-btn')
+    const submitEl = document.getElementById('chatbot-submit')
+    const resetBtn = document.getElementById('chatbot-reset')
 
-    if (!messagesEl || !formEl || !inputEl) {
+    if (!messagesEl || !formEl || !inputEl || !submitEl) {
         return
     }
 
-    const canned = {
-        'lorem one': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-        'lorem two': 'Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-        'lorem three': 'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
-        'ipsum': 'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.'
-    }
+    const initialMarkup = messagesEl.innerHTML
+    let pending = false
 
     const addMsg = (text, role) => {
         const item = document.createElement('div')
-        item.className = `chat-msg ${role}`
+        item.className = `chat-msg ${role === 'assistant' ? 'bot' : 'user'}`
+        item.dataset.role = role
         item.textContent = text
         messagesEl.appendChild(item)
         messagesEl.scrollTop = messagesEl.scrollHeight
+        return item
     }
 
-    const answerFor = (raw) => {
-        const normalized = String(raw || '').trim().toLowerCase()
-        if (normalized === '') {
-            return 'Lorem ipsum dolor sit amet.'
+    const setPending = (value) => {
+        pending = value
+        inputEl.disabled = value
+        submitEl.disabled = value
+
+        if (value) {
+            submitEl.innerHTML = '<i class="bi bi-hourglass-split"></i>'
+            return
         }
-        if (canned[normalized]) {
-            return canned[normalized]
-        }
-        return 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Tente: lorem one, lorem two.'
+
+        submitEl.innerHTML = '<i class="bi bi-send"></i>'
     }
 
-    const ask = (question) => {
+    const collectHistory = () => {
+        return Array.from(messagesEl.querySelectorAll('.chat-msg')).map((item) => ({
+            role: item.dataset.role === 'assistant' ? 'assistant' : 'user',
+            text: item.textContent || ''
+        }))
+    }
+
+    const resetChat = () => {
+        if (pending) return
+        messagesEl.innerHTML = initialMarkup
+        inputEl.value = ''
+        inputEl.focus()
+    }
+
+    const ask = async (question) => {
         const q = String(question || '').trim()
-        if (q === '') return
+        if (q === '' || pending) return
+
         addMsg(q, 'user')
-        window.setTimeout(() => {
-            addMsg(answerFor(q), 'bot')
-        }, 220)
+        inputEl.value = ''
+        setPending(true)
+
+        const typingEl = addMsg('Pensando...', 'assistant')
+
+        try {
+            const response = await fetch(formEl.dataset.endpoint || '', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    message: q,
+                    history: collectHistory().slice(0, -1)
+                })
+            })
+
+            const payload = await response.json()
+            typingEl.remove()
+
+            if (!response.ok || !payload.ok) {
+                throw new Error(payload.message || 'Falha ao consultar o assistente.')
+            }
+
+            addMsg(payload.reply || 'Sem resposta.', 'assistant')
+        } catch (error) {
+            typingEl.remove()
+            addMsg('Nao foi possivel obter resposta do assistente agora.', 'assistant')
+
+            if (window.toastr) {
+                window.toastr.error(error.message || 'Erro ao consultar o Gemini.')
+            }
+        } finally {
+            setPending(false)
+            inputEl.focus()
+        }
     }
 
     formEl.addEventListener('submit', (event) => {
         event.preventDefault()
-        const question = inputEl.value
-        ask(question)
-        inputEl.value = ''
-        inputEl.focus()
+        ask(inputEl.value)
     })
 
-    quickBtns.forEach((btn) => {
-        btn.addEventListener('click', () => {
-            const question = btn.getAttribute('data-question') || ''
-            ask(question)
-        })
-    })
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetChat)
+    }
 })()

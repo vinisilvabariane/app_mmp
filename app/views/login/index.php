@@ -92,10 +92,6 @@ unset($_SESSION['login_error']);
                     <i class="bi bi-arrow-right-short"></i>
                 </button>
             </form>
-
-            <div class="login-panel-foot">
-                <p class="mb-0">As credenciais podem ser configuradas via <code>AUTH_USER</code> e <code>AUTH_PASS</code> no arquivo <code>.env</code>.</p>
-            </div>
         </section>
     </main>
 
