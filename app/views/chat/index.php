@@ -30,8 +30,8 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
             <div class="card-body p-4 p-lg-4 d-flex flex-column gap-4">
                 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                     <div>
-                        <h1 class="system-title h3 mb-1">Chat</h1>
-                        <p class="system-subtitle">Converse com o assistente sem sair da página.</p>
+                        <h1 class="system-title h3 mb-1">Chat aberto</h1>
+                        <p class="system-subtitle">Converse livremente com o assistente nesta pagina, mesmo sem login.</p>
                     </div>
                     <button type="button" class="btn btn-outline-primary" id="chat-reset-top">
                         <i class="bi bi-arrow-counterclockwise me-2"></i>Resetar chat
@@ -52,7 +52,7 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                             <textarea id="chat-message" class="form-control chat-page-input" rows="3" placeholder="Digite sua pergunta aqui..."></textarea>
                         </div>
                         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
-                            <small class="text-muted" id="chat-status">Envie uma mensagem para começar.</small>
+                            <small class="text-muted" id="chat-status">Envie uma mensagem para comecar.</small>
                             <button type="submit" class="btn btn-primary" id="chat-submit">
                                 <i class="bi bi-send me-2"></i>Enviar
                             </button>

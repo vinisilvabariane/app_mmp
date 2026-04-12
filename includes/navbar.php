@@ -1,11 +1,10 @@
-﻿<?php
+<?php
 $basePath = isset($_SERVER['APP_BASE_PATH']) ? (string)$_SERVER['APP_BASE_PATH'] : '';
 $currentRoute = isset($_SERVER['APP_CURRENT_ROUTE']) ? (string)$_SERVER['APP_CURRENT_ROUTE'] : '/';
 $homeUrl = ($basePath !== '' ? $basePath : '') . '/home';
 $formsUrl = ($basePath !== '' ? $basePath : '') . '/forms';
 $logoutUrl = ($basePath !== '' ? $basePath : '') . '/logout';
 $adminUrl = ($basePath !== '' ? $basePath : '') . '/admin';
-$testeUrl = ($basePath !== '' ? $basePath : '') . '/teste';
 $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
 ?>
 <header class="top-nav-shell">

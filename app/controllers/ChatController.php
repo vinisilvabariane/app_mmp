@@ -71,6 +71,11 @@ class ChatController
         }
     }
 
+    private function requestMethod(): string
+    {
+        return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+    }
+
     private function basePath(): string
     {
         return isset($_SERVER['APP_BASE_PATH']) ? (string) $_SERVER['APP_BASE_PATH'] : '';
@@ -79,11 +84,6 @@ class ChatController
     private function isAuthenticated(): bool
     {
         return Auth::check();
-    }
-
-    private function requestMethod(): string
-    {
-        return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
     }
 
     private function friendlyErrorMessage(string $message): string
