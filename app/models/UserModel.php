@@ -41,14 +41,47 @@ class UserModel
     public function create(string $email, string $passwordHash, ?string $fullName = null): int
     {
         $pdo = Connection::connect();
-        $querySql = 'INSERT INTO users (email, password_hash, full_name, is_active, reset_required) VALUES (:email, :password_hash, :full_name, 1, 0)';
-        $statement = $pdo->prepare($querySql);
-        $statement->bindValue(':email', $email, PDO::PARAM_STR);
-        $statement->bindValue(':password_hash', $passwordHash, PDO::PARAM_STR);
-        $statement->bindValue(':full_name', $fullName, $fullName !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
-        $statement->execute();
+        $pdo->beginTransaction();
 
-        return (int) $pdo->lastInsertId();
+        try {
+            $roleQuery = "SELECT id
+                FROM roles
+                WHERE active = 1
+                ORDER BY CASE WHEN name = 'user' THEN 0 ELSE 1 END, id ASC
+                LIMIT 1";
+            $roleId = (int) $pdo->query($roleQuery)->fetchColumn();
+
+            if ($roleId <= 0) {
+                throw new \RuntimeException('Nenhum perfil ativo foi encontrado para criar o usuario.');
+            }
+
+            $querySql = 'INSERT INTO users (email, password_hash, full_name, role_id, is_active, reset_required)
+                VALUES (:email, :password_hash, :full_name, :role_id, 1, 0)';
+            $statement = $pdo->prepare($querySql);
+            $statement->bindValue(':email', $email, PDO::PARAM_STR);
+            $statement->bindValue(':password_hash', $passwordHash, PDO::PARAM_STR);
+            $statement->bindValue(':full_name', $fullName, $fullName !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
+            $statement->bindValue(':role_id', $roleId, PDO::PARAM_INT);
+            $statement->execute();
+
+            $userId = (int) $pdo->lastInsertId();
+
+            $userRoleSql = 'INSERT INTO user_roles (user_id, role_id) VALUES (:user_id, :role_id)';
+            $userRoleStatement = $pdo->prepare($userRoleSql);
+            $userRoleStatement->bindValue(':user_id', $userId, PDO::PARAM_INT);
+            $userRoleStatement->bindValue(':role_id', $roleId, PDO::PARAM_INT);
+            $userRoleStatement->execute();
+
+            $pdo->commit();
+
+            return $userId;
+        } catch (\Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            throw $exception;
+        }
     }
 
     public function getAll(): array
