@@ -17,11 +17,11 @@ $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
         <nav id="sidebar" class="top-nav" aria-label="Lorem ipsum">
             <a href="<?= $homeUrl ?>"
                 class="nav-link-item <?= ($currentRoute === '/' || $currentRoute === '/home') ? 'active' : '' ?>">
-                Lorem
+                Home
             </a>
             <a href="<?= $formsUrl ?>"
                 class="nav-link-item <?= $currentRoute === '/forms' ? 'active' : '' ?>">
-                Ipsum
+                Forms
             </a>
             <a href="<?= $adminUrl ?>"
                 class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">

@@ -42,7 +42,7 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                     <a href="<?= $basePath ?>/forms" class="btn btn-primary btn-lg">
                         <i class="bi bi-send-check me-2"></i>Inicie o apredizado.
                     </a>
-                    <a href="<?= $basePath ?>/forms" class="btn btn-outline-primary btn-lg">
+                    <a href="<?= $basePath ?>/chat" class="btn btn-outline-primary btn-lg text-light">
                         <i class="bi bi-mortarboard me-2"></i>Converse com um chat.
                     </a>
                 </div>
