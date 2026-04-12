@@ -470,6 +470,40 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(69, 147, 108, 0.15);
 }
 
+.password-field {
+    position: relative;
+}
+
+.password-field-input {
+    padding-right: 3rem;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0.85rem;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: rgba(51, 79, 83, 0.75);
+}
+
+.password-toggle:hover {
+    color: var(--color2);
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid rgba(69, 147, 108, 0.35);
+    outline-offset: 2px;
+    border-radius: 999px;
+}
+
 .login-submit {
     display: inline-flex;
     align-items: center;
@@ -769,6 +803,17 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+}
+
+.chatbot-quick-btn {
+    flex: 1 1 100%;
+    text-align: left;
+}
+
+.aside-chat-hint {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: rgba(31, 10, 29, 0.72);
 }
 
 .chatbot-form {

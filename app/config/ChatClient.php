@@ -6,7 +6,7 @@ use RuntimeException;
 
 class ChatClient
 {
-    public function generateReply(array $history): string
+    public function generateReply(array $history, string $instructionSuffix = ''): string
     {
         $apiKey = Env::get('GROQ_API_KEY');
         if ($apiKey === '') {
@@ -16,8 +16,9 @@ class ChatClient
         $model = Env::get('GROQ_MODEL', 'llama-3.3-70b-versatile');
         $instruction = trim(Env::get(
             'GROQ_SYSTEM_INSTRUCTION',
-            'Voce e um assistente util do sistema Map My Path. Responda em portugues do Brasil com clareza e objetividade.'
+            'Voce e o assistente do sistema Map My Path, uma plataforma de trilha estudantil e orientacao de aprendizagem. Responda sempre em portugues do Brasil, com clareza, objetividade e foco no uso do sistema. Ao responder, priorize orientar o usuario dentro da plataforma. Explique que a pagina Home apresenta a proposta do sistema, a pagina Forms e o local onde o usuario responde perguntas para obter sua analise e trilha personalizada, a pagina Chat serve para tirar duvidas mais abertas, e a pagina Admin e destinada a funcoes administrativas. Quando a pergunta for geral sobre como comecar, oriente o usuario a ir para a pagina Forms para responder o formulario e receber a analise. Nao invente funcionalidades que nao estejam claras. Se faltar contexto, diga isso de forma simples e direcione o usuario para a pagina mais adequada do sistema.'
         ));
+        $instruction = trim($instruction . ' ' . trim($instructionSuffix));
 
         $messages = $this->buildMessages($history, $instruction);
         if ($messages === []) {

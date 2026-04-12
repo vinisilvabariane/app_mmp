@@ -36,13 +36,12 @@
         }
     })
 
+    const panelEl = document.getElementById('chatbot-panel')
     const messagesEl = document.getElementById('chatbot-messages')
-    const formEl = document.getElementById('chatbot-form')
-    const inputEl = document.getElementById('chatbot-input')
-    const submitEl = document.getElementById('chatbot-submit')
+    const quickBtns = document.querySelectorAll('.chatbot-quick-btn')
     const resetBtn = document.getElementById('chatbot-reset')
 
-    if (!messagesEl || !formEl || !inputEl || !submitEl) {
+    if (!panelEl || !messagesEl || quickBtns.length === 0) {
         return
     }
 
@@ -61,15 +60,9 @@
 
     const setPending = (value) => {
         pending = value
-        inputEl.disabled = value
-        submitEl.disabled = value
-
-        if (value) {
-            submitEl.innerHTML = '<i class="bi bi-hourglass-split"></i>'
-            return
-        }
-
-        submitEl.innerHTML = '<i class="bi bi-send"></i>'
+        quickBtns.forEach((btn) => {
+            btn.disabled = value
+        })
     }
 
     const collectHistory = () => {
@@ -82,8 +75,6 @@
     const resetChat = () => {
         if (pending) return
         messagesEl.innerHTML = initialMarkup
-        inputEl.value = ''
-        inputEl.focus()
     }
 
     const ask = async (question) => {
@@ -91,13 +82,12 @@
         if (q === '' || pending) return
 
         addMsg(q, 'user')
-        inputEl.value = ''
         setPending(true)
 
         const typingEl = addMsg('Pensando...', 'assistant')
 
         try {
-            const response = await fetch(formEl.dataset.endpoint || '', {
+            const response = await fetch(panelEl.dataset.endpoint || '', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -105,7 +95,8 @@
                 },
                 body: JSON.stringify({
                     message: q,
-                    history: collectHistory().slice(0, -1)
+                    history: collectHistory().slice(0, -1),
+                    responseMode: 'compact'
                 })
             })
 
@@ -126,13 +117,13 @@
             }
         } finally {
             setPending(false)
-            inputEl.focus()
         }
     }
 
-    formEl.addEventListener('submit', (event) => {
-        event.preventDefault()
-        ask(inputEl.value)
+    quickBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+            ask(btn.dataset.question || '')
+        })
     })
 
     if (resetBtn) {

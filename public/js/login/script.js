@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerEmail = document.getElementById('register-email');
     const registerPassword = document.getElementById('register-password');
     const registerPasswordConfirm = document.getElementById('register-password-confirm');
+    const passwordToggleButtons = document.querySelectorAll('.password-toggle');
 
     if (!form || !submitButton || !submitText) {
         return;
@@ -52,6 +53,36 @@ document.addEventListener('DOMContentLoaded', () => {
         registerButton.disabled = loading;
         registerButton.textContent = loading ? 'Criando...' : 'Criar conta';
     };
+
+    const updatePasswordToggle = (button, field) => {
+        const isVisible = field.type === 'text';
+        const icon = button.querySelector('i');
+
+        button.setAttribute('aria-label', isVisible ? 'Ocultar senha' : 'Mostrar senha');
+        button.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+
+        if (icon) {
+            icon.className = isVisible ? 'bi bi-eye-slash' : 'bi bi-eye';
+        }
+    };
+
+    passwordToggleButtons.forEach((button) => {
+        const targetId = button.dataset.passwordTarget;
+        const field = targetId ? document.getElementById(targetId) : null;
+
+        if (!field) {
+            return;
+        }
+
+        updatePasswordToggle(button, field);
+
+        button.addEventListener('click', () => {
+            field.type = field.type === 'password' ? 'text' : 'password';
+            updatePasswordToggle(button, field);
+            field.focus({ preventScroll: true });
+            field.setSelectionRange(field.value.length, field.value.length);
+        });
+    });
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();

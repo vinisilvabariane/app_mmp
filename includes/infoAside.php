@@ -11,15 +11,26 @@
             </button>
         </div>
     </div>
-    <div class="chatbot-wrap">
+    <div class="chatbot-wrap" id="chatbot-panel" data-endpoint="<?= $asideBasePath ?>/chat/message">
         <div id="chatbot-messages" class="chatbot-messages" aria-live="polite">
-            <div class="chat-msg bot" data-role="assistant">Ola. Posso ajudar com duvidas rapidas em qualquer pagina.</div>
+            <div class="chat-msg bot" data-role="assistant">Escolha uma pergunta rapida sobre o sistema para eu te ajudar aqui no painel.</div>
         </div>
-        <form id="chatbot-form" class="chatbot-form" data-endpoint="<?= $asideBasePath ?>/chat/message">
-            <input type="text" id="chatbot-input" class="form-control" placeholder="Digite sua pergunta..." autocomplete="off">
-            <button type="submit" class="btn btn-primary" id="chatbot-submit">
-                <i class="bi bi-send"></i>
+        <div class="chatbot-quick" id="chatbot-quick">
+            <button type="button" class="btn btn-sm btn-outline-primary chatbot-quick-btn" data-question="Explique rapidamente como usar o sistema Map My Path.">
+                Como usar o sistema?
             </button>
-        </form>
+            <button type="button" class="btn btn-sm btn-outline-primary chatbot-quick-btn" data-question="Quais sao as principais areas ou paginas do sistema e para que servem?">
+                O que tem em cada pagina?
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary chatbot-quick-btn" data-question="Como preencher o formulario para obter uma orientacao melhor?">
+                Como preencher o formulario?
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary chatbot-quick-btn" data-question="Que tipo de ajuda eu posso pedir no chat principal desta plataforma?">
+                O que posso perguntar?
+            </button>
+        </div>
+        <div class="aside-chat-hint">
+            Para perguntas abertas, use a pagina completa de chat.
+        </div>
     </div>
 </aside>

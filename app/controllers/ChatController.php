@@ -35,6 +35,7 @@ class ChatController
         $payload = json_decode(file_get_contents('php://input') ?: '', true);
         $message = trim((string) ($payload['message'] ?? ''));
         $history = is_array($payload['history'] ?? null) ? $payload['history'] : [];
+        $responseMode = strtolower(trim((string) ($payload['responseMode'] ?? 'default')));
 
         if ($message === '') {
             $this->jsonResponse([
@@ -51,7 +52,10 @@ class ChatController
 
         try {
             $client = new ChatClient();
-            $reply = $client->generateReply(array_slice($history, -20));
+            $reply = $client->generateReply(
+                array_slice($history, -20),
+                $this->instructionSuffixForMode($responseMode)
+            );
 
             $this->jsonResponse([
                 'ok' => true,
@@ -129,6 +133,15 @@ class ChatController
         }
 
         return 500;
+    }
+
+    private function instructionSuffixForMode(string $responseMode): string
+    {
+        if ($responseMode === 'compact') {
+            return 'Para este canal lateral, responda em no maximo 2 frases curtas, com foco pratico e sem introducoes longas. Quando a pergunta for sobre como comecar, analise ou direcionamento, oriente o usuario a acessar a pagina Forms.';
+        }
+
+        return '';
     }
 
     private function jsonResponse(array $data, int $statusCode = 200): void

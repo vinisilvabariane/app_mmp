@@ -89,7 +89,12 @@ unset($_SESSION['login_error']);
                 </div>
                 <div class="mb-3">
                     <label for="password" class="form-label">Senha</label>
-                    <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required>
+                    <div class="password-field">
+                        <input type="password" class="form-control password-field-input" id="password" name="password" autocomplete="current-password" required>
+                        <button type="button" class="password-toggle" data-password-target="password" aria-label="Mostrar senha" aria-pressed="false">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="login-secondary-actions">
                     <button type="button" class="btn btn-link px-0 login-link-btn" id="toggle-reset-password">
@@ -117,11 +122,21 @@ unset($_SESSION['login_error']);
                         </div>
                         <div>
                             <label for="register-password" class="form-label">Senha</label>
-                            <input type="password" class="form-control" id="register-password" placeholder="Minimo 8 caracteres">
+                            <div class="password-field">
+                                <input type="password" class="form-control password-field-input" id="register-password" placeholder="Minimo 8 caracteres">
+                                <button type="button" class="password-toggle" data-password-target="register-password" aria-label="Mostrar senha" aria-pressed="false">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                         <div>
                             <label for="register-password-confirm" class="form-label">Confirmar senha</label>
-                            <input type="password" class="form-control" id="register-password-confirm" placeholder="Repita a senha">
+                            <div class="password-field">
+                                <input type="password" class="form-control password-field-input" id="register-password-confirm" placeholder="Repita a senha">
+                                <button type="button" class="password-toggle" data-password-target="register-password-confirm" aria-label="Mostrar senha" aria-pressed="false">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="login-register-actions">
