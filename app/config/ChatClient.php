@@ -4,55 +4,49 @@ namespace App\config;
 
 use RuntimeException;
 
-class GeminiClient
+class ChatClient
 {
     public function generateReply(array $history): string
     {
-        $apiKey = Env::get('GEMINI_API_KEY');
+        $apiKey = Env::get('GROQ_API_KEY');
         if ($apiKey === '') {
-            throw new RuntimeException('A chave GEMINI_API_KEY nao foi configurada.');
+            throw new RuntimeException('A chave GROQ_API_KEY nao foi configurada.');
         }
 
-        $model = Env::get('GEMINI_MODEL', 'gemini-2.0-flash');
+        $model = Env::get('GROQ_MODEL', 'llama-3.3-70b-versatile');
         $instruction = trim(Env::get(
-            'GEMINI_SYSTEM_INSTRUCTION',
+            'GROQ_SYSTEM_INSTRUCTION',
             'Voce e um assistente util do sistema Map My Path. Responda em portugues do Brasil com clareza e objetividade.'
         ));
 
-        $contents = $this->buildContents($history);
-        if ($contents === []) {
+        $messages = $this->buildMessages($history, $instruction);
+        if ($messages === []) {
             throw new RuntimeException('Nenhuma mensagem valida foi enviada ao assistente.');
         }
 
         $payload = [
-            'contents' => $contents,
-            'generationConfig' => [
-                'temperature' => 0.7,
-                'maxOutputTokens' => 800,
-            ],
+            'model' => $model,
+            'messages' => $messages,
+            'temperature' => 0.7,
+            'max_completion_tokens' => 800,
         ];
 
-        if ($instruction !== '') {
-            $payload['systemInstruction'] = [
-                'parts' => [
-                    ['text' => $instruction],
-                ],
-            ];
-        }
+        $url = 'https://api.groq.com/openai/v1/chat/completions';
 
-        $url = sprintf(
-            'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s',
-            rawurlencode($model),
-            rawurlencode($apiKey)
-        );
-
-        $response = $this->postJson($url, $payload);
+        $response = $this->postJson($url, $payload, $apiKey);
         return $this->extractText($response);
     }
 
-    private function buildContents(array $history): array
+    private function buildMessages(array $history, string $instruction): array
     {
-        $contents = [];
+        $messages = [];
+
+        if ($instruction !== '') {
+            $messages[] = [
+                'role' => 'system',
+                'content' => $instruction,
+            ];
+        }
 
         foreach ($history as $message) {
             if (!is_array($message)) {
@@ -66,22 +60,20 @@ class GeminiClient
                 continue;
             }
 
-            $contents[] = [
-                'role' => $role === 'assistant' ? 'model' : 'user',
-                'parts' => [
-                    ['text' => $text],
-                ],
+            $messages[] = [
+                'role' => $role === 'assistant' ? 'assistant' : 'user',
+                'content' => $text,
             ];
         }
 
-        return $contents;
+        return $messages;
     }
 
-    private function postJson(string $url, array $payload): array
+    private function postJson(string $url, array $payload, string $apiKey): array
     {
         $json = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (!is_string($json)) {
-            throw new RuntimeException('Falha ao serializar a requisicao para o Gemini.');
+            throw new RuntimeException('Falha ao serializar a requisicao para o assistente.');
         }
 
         $context = stream_context_create([
@@ -90,6 +82,7 @@ class GeminiClient
                 'header' => implode("\r\n", [
                     'Content-Type: application/json',
                     'Accept: application/json',
+                    'Authorization: Bearer ' . $apiKey,
                 ]),
                 'content' => $json,
                 'ignore_errors' => true,
@@ -101,16 +94,16 @@ class GeminiClient
         $statusCode = $this->extractStatusCode($http_response_header ?? []);
 
         if ($result === false) {
-            throw new RuntimeException('Nao foi possivel conectar com a API do Gemini.');
+            throw new RuntimeException('Nao foi possivel conectar com a API do assistente.');
         }
 
         $decoded = json_decode($result, true);
         if (!is_array($decoded)) {
-            throw new RuntimeException('A API do Gemini retornou uma resposta invalida.');
+            throw new RuntimeException('A API do assistente retornou uma resposta invalida.');
         }
 
         if ($statusCode >= 400) {
-            $message = (string) ($decoded['error']['message'] ?? 'Erro ao consultar o Gemini.');
+            $message = (string) ($decoded['error']['message'] ?? 'Erro ao consultar o assistente.');
             throw new RuntimeException($message);
         }
 
@@ -130,11 +123,11 @@ class GeminiClient
 
     private function extractText(array $response): string
     {
-        $candidate = $response['candidates'][0]['content']['parts'][0]['text'] ?? '';
+        $candidate = $response['choices'][0]['message']['content'] ?? '';
         $text = trim((string) $candidate);
 
         if ($text === '') {
-            throw new RuntimeException('O Gemini nao retornou texto para esta solicitacao.');
+            throw new RuntimeException('O assistente nao retornou texto para esta solicitacao.');
         }
 
         return $text;

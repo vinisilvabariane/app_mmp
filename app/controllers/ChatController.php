@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\config\Auth;
-use App\config\GeminiClient;
+use App\config\ChatClient;
 use RuntimeException;
 
 class ChatController
@@ -50,7 +50,7 @@ class ChatController
         ];
 
         try {
-            $client = new GeminiClient();
+            $client = new ChatClient();
             $reply = $client->generateReply(array_slice($history, -20));
 
             $this->jsonResponse([
@@ -58,10 +58,12 @@ class ChatController
                 'reply' => $reply,
             ]);
         } catch (RuntimeException $exception) {
+            error_log('[ChatController] Assistant provider error: ' . $exception->getMessage());
+
             $this->jsonResponse([
                 'ok' => false,
-                'message' => $exception->getMessage(),
-            ], 500);
+                'message' => $this->friendlyErrorMessage($exception->getMessage()),
+            ], $this->friendlyErrorStatusCode($exception->getMessage()));
         }
     }
 
@@ -78,6 +80,55 @@ class ChatController
     private function requestMethod(): string
     {
         return strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+    }
+
+    private function friendlyErrorMessage(string $message): string
+    {
+        $normalized = strtolower($message);
+
+        if (
+            str_contains($normalized, 'quota exceeded') ||
+            str_contains($normalized, 'rate limit') ||
+            str_contains($normalized, 'resource_exhausted')
+        ) {
+            return 'O assistente esta temporariamente indisponivel por limite de uso. Tente novamente em instantes.';
+        }
+
+        if (str_contains($normalized, 'api key') || str_contains($normalized, 'api_key')) {
+            return 'O assistente nao esta configurado corretamente no momento.';
+        }
+
+        if (str_contains($normalized, 'nao foi possivel conectar')) {
+            return 'Nao foi possivel conectar ao assistente agora. Tente novamente em instantes.';
+        }
+
+        if (
+            str_contains($normalized, 'resposta invalida') ||
+            str_contains($normalized, 'nao retornou texto')
+        ) {
+            return 'O assistente nao conseguiu gerar uma resposta valida agora. Tente novamente.';
+        }
+
+        return 'Nao foi possivel processar sua mensagem agora. Tente novamente em alguns instantes.';
+    }
+
+    private function friendlyErrorStatusCode(string $message): int
+    {
+        $normalized = strtolower($message);
+
+        if (
+            str_contains($normalized, 'quota exceeded') ||
+            str_contains($normalized, 'rate limit') ||
+            str_contains($normalized, 'resource_exhausted')
+        ) {
+            return 429;
+        }
+
+        if (str_contains($normalized, 'api key') || str_contains($normalized, 'api_key')) {
+            return 503;
+        }
+
+        return 500;
     }
 
     private function jsonResponse(array $data, int $statusCode = 200): void

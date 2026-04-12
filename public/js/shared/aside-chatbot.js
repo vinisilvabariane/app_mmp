@@ -122,7 +122,7 @@
             addMsg('Nao foi possivel obter resposta do assistente agora.', 'assistant')
 
             if (window.toastr) {
-                window.toastr.error(error.message || 'Erro ao consultar o Gemini.')
+                window.toastr.error(error.message || 'Erro ao consultar o assistente.')
             }
         } finally {
             setPending(false)

@@ -11,7 +11,7 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lorem Ipsum</title>
+    <title>Map My Path - Home</title>
     <link rel="icon" type="image/png" href="<?= $basePath ?>/public/img/com-fundo-maior.png" sizes="512x512">
     <link rel="apple-touch-icon" href="<?= $basePath ?>/public/img/com-fundo-maior.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -52,36 +52,36 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
         <section class="hero-info-cards fade-in-up">
             <div class="hero-panel-inner">
                 <div class="hero-info-head">
-                    <h2>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</h2>
-                    <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip.</p>
+                    <h2>Obtenha um plano de estudos personalizados, que se adegue a sua necessidade.</h2>
+                    <p>Um plano de estudos personalizado é uma excelente forma de organizar seu aprendizado e alcançar seus objetivos de forma mais eficiente.</p>
                 </div>
                 <div class="hero-cards-grid">
                     <article class="hero-info-card">
-                        <h3>Lorem A</h3>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                        <h3>Seu plano, pra você!</h3>
+                        <p>Uma análise detalhada das suas necessidades e objetivos.</p>
                     </article>
                     <article class="hero-info-card">
-                        <h3>Lorem B</h3>
-                        <p>Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+                        <h3>Ferramentas de IA</h3>
+                        <p>Ferramentas de IA otimizadas para se adaptar às suas necessidades.</p>
                     </article>
                     <article class="hero-info-card">
-                        <h3>Lorem C</h3>
-                        <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+                        <h3>Facilite seu aprendizado</h3>
+                        <p>Recursos e ferramentas para tornar seu processo de aprendizado mais eficiente e agradável.</p>
                     </article>
                     <article class="hero-info-card">
-                        <h3>Lorem D</h3>
-                        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse.</p>
+                        <h3>Seu perfil, suas regras!</h3>
+                        <p>Conforme suas facilidades e dificuldades, comece pelo que melhor se adapta a você.</p>
                     </article>
                     <article class="hero-info-card">
-                        <h3>Lorem E</h3>
-                        <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa.</p>
+                        <h3>Comece agora!</h3>
+                        <p>Responda a algumas perguntas para criar seu plano de estudos personalizado.</p>
                     </article>
                     <article class="hero-info-card hero-info-card-cta">
-                        <h3>Lorem F</h3>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit sed do.</p>
-                        <button type="button" class="btn btn-outline-primary" id="openAsideInfo">
+                        <h3>Converse abertamente!</h3>
+                        <p>Ficou com dúvidas? Converse com nosso assistente virtual!</p>
+                        <!-- <button type="button" class="btn btn-outline-primary" id="openAsideInfo">
                             <i class="bi bi-compass me-2"></i>Lorem
-                        </button>
+                        </button> -->
                     </article>
                 </div>
             </div>
