@@ -1,4 +1,7 @@
 <?php
+
+use App\config\Auth;
+
 $basePath = isset($_SERVER['APP_BASE_PATH']) ? (string)$_SERVER['APP_BASE_PATH'] : '';
 $currentRoute = isset($_SERVER['APP_CURRENT_ROUTE']) ? (string)$_SERVER['APP_CURRENT_ROUTE'] : '/';
 $homeUrl = ($basePath !== '' ? $basePath : '') . '/home';
@@ -6,52 +9,80 @@ $formsUrl = ($basePath !== '' ? $basePath : '') . '/forms';
 $logoutUrl = ($basePath !== '' ? $basePath : '') . '/logout';
 $adminUrl = ($basePath !== '' ? $basePath : '') . '/admin';
 $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
+$profileUrl = ($basePath !== '' ? $basePath : '') . '/profile';
+$authUser = Auth::user();
+$authUserName = trim((string) ($authUser['full_name'] ?? ''));
+
+if (!function_exists('mmp_initials')) {
+    function mmp_initials(string $name): string
+    {
+        $name = trim($name);
+        if ($name === '') {
+            return '?';
+        }
+
+        $parts = preg_split('/\s+/', $name) ?: [];
+        $parts = array_values(array_filter($parts, static fn($part) => $part !== ''));
+
+        if (count($parts) === 0) {
+            return '?';
+        }
+
+        if (count($parts) === 1) {
+            return strtoupper(substr($parts[0], 0, 1));
+        }
+
+        return strtoupper(substr($parts[0], 0, 1) . substr($parts[count($parts) - 1], 0, 1));
+    }
+}
+
+$authUserInitials = mmp_initials($authUserName);
 ?>
 <header class="top-nav-shell">
     <div class="top-nav-inner">
         <a href="<?= $homeUrl ?>" class="brand-mark" aria-label="Lorem Ipsum Lorem">
-            <img src="<?= $basePath ?>/public/img/logo-v2.png" alt="Logo" class="brand-logo">
+            <img src="<?= $basePath ?>/public/img/logo-v2.png" class="brand-logo">
             <span class="brand-text">Map My Path</span>
         </a>
-        <nav id="sidebar" class="top-nav" aria-label="Lorem ipsum">
-            <a href="<?= $homeUrl ?>"
-                class="nav-link-item <?= ($currentRoute === '/' || $currentRoute === '/home') ? 'active' : '' ?>">
-                Home
-            </a>
-            <a href="<?= $formsUrl ?>"
-                class="nav-link-item <?= $currentRoute === '/forms' ? 'active' : '' ?>">
-                Forms
-            </a>
-            <a href="<?= $adminUrl ?>"
-                class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
-                Admin
-            </a>
-            <a href="<?= $chatUrl ?>"
-                class="nav-link-item <?= $currentRoute === '/chat' ? 'active' : '' ?>">
-                Chat
-            </a>
+        <div class="top-nav-cluster">
+            <nav id="sidebar" class="top-nav" aria-label="Lorem ipsum">
+                <a href="<?= $homeUrl ?>"
+                    class="nav-link-item <?= ($currentRoute === '/' || $currentRoute === '/home') ? 'active' : '' ?>">
+                    Início
+                </a>
+                <a href="<?= $formsUrl ?>"
+                    class="nav-link-item <?= $currentRoute === '/forms' ? 'active' : '' ?>">
+                    Formulário
+                </a>
+                <a href="<?= $adminUrl ?>"
+                    class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
+                    Gerenciamento
+                </a>
+                <a href="<?= $chatUrl ?>"
+                    class="nav-link-item <?= $currentRoute === '/chat' ? 'active' : '' ?>">
+                    Chat
+                </a>
+            </nav>
 
-            <a href="<?= $basePath ?>/profile"
-                class="nav-link-item <?= $currentRoute === '/profile' ? 'active' : '' ?>">
+            <details class="nav-profile-menu <?= $currentRoute === '/profile' ? 'is-active' : '' ?>">
+                <summary class="nav-profile-toggle" aria-label="Abrir menu do perfil">
                     <div class="avatar-circle" id="avatar">
-                        <span id="avatar-initials"></span>
-                        <img id="avatar-img" src="" alt="Avatar" style="display: none;">
+                        <span><?= htmlspecialchars($authUserInitials, ENT_QUOTES, 'UTF-8') ?></span>
                     </div>
-            </a>
+                    <i class="bi bi-chevron-down"></i>
+                </summary>
 
-            <script>
-                function getInitials(name) {
-                    const parts = name.trim().split(" ").filter(p => p);
-                    if (parts.length === 1) return parts[0][0];
-                    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-                }
-                const userName = localStorage.getItem("userName") || "Maria Clara";
-                document.getElementById("avatar-initials").textContent = getInitials(userName);
-            </script>
-
-            <a href="<?= $logoutUrl ?>" class="nav-link-item">
-                Sair
-            </a>
-        </nav>
+                <div class="nav-profile-dropdown">
+                    <a href="<?= $profileUrl ?>" class="nav-profile-action">
+                        <i class="bi bi-person-circle"></i>
+                        <span>Perfil</span>
+                    </a>
+                    <a href="<?= $logoutUrl ?>" class="nav-profile-action nav-profile-action-logout">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </details>
+        </div>
     </div>
 </header>
