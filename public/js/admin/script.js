@@ -14,12 +14,18 @@ let chartEngajamento = null
 let chartRisco = null
 
 async function init() {
-    alunos = await getAlunos()
-
-    preencherFiltros()
-    aplicarFiltros()
-
-    await loadDashboard()
+    try {
+        alunos = await getAlunos()
+        preencherFiltros()
+        aplicarFiltros()
+        await loadDashboard()
+    } catch (error) {
+        console.error('Erro ao carregar dados do admin:', error)
+        tabela.innerHTML = `<tr><td colspan="5" class="text-center">Nao foi possivel carregar os dados reais.</td></tr>`
+        if (window.toastr) {
+            window.toastr.error('Nao foi possivel carregar os dados do painel administrativo.')
+        }
+    }
 }
 
 init()
@@ -151,23 +157,30 @@ clearBtn.addEventListener('click', () => {
 })
 
 window.verAluno = async function (id) {
-    const aluno = await getAlunoById(id)
+    try {
+        const aluno = await getAlunoById(id)
 
-    document.getElementById("detalhe-aluno").innerHTML = `
-        <h5>${aluno.nome}</h5>
-        <p><strong>Curso:</strong> ${aluno.curso}</p>
-        <p><strong>Semestre:</strong> ${aluno.semestre}</p>
+        document.getElementById("detalhe-aluno").innerHTML = `
+            <h5>${aluno.nome}</h5>
+            <p><strong>Curso:</strong> ${aluno.curso}</p>
+            <p><strong>Semestre:</strong> ${aluno.semestre}</p>
 
-        <hr>
+            <hr>
 
-        <h6>Respostas:</h6>
-        ${aluno.respostas.map(r => `
-            <p><strong>${r.pergunta}:</strong> ${r.resposta}</p>
-        `).join('')}
-    `
+            <h6>Respostas:</h6>
+            ${aluno.respostas.map(r => `
+                <p><strong>${r.pergunta}:</strong> ${r.resposta}</p>
+            `).join('')}
+        `
 
-    const modal = new bootstrap.Modal(document.getElementById('modalAluno'))
-    modal.show()
+        const modal = new bootstrap.Modal(document.getElementById('modalAluno'))
+        modal.show()
+    } catch (error) {
+        console.error('Erro ao carregar aluno:', error)
+        if (window.toastr) {
+            window.toastr.error('Nao foi possivel carregar os detalhes do aluno.')
+        }
+    }
 }
 
 let chartExpandido = null

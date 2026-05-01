@@ -54,6 +54,9 @@ $authUserInitials = mmp_initials($authUserName);
                     class="nav-link-item <?= $currentRoute === '/forms' ? 'active' : '' ?>">
                     Formulário
                 </a>
+
+
+                
                 <a href="<?= $adminUrl ?>"
                     class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
                     Gerenciamento
@@ -84,5 +87,18 @@ $authUserInitials = mmp_initials($authUserName);
                 </div>
             </details>
         </div>
+
+        <script>
+            console.log('Navbar session user', {
+                id: <?= json_encode($authUser['id'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+                email: <?= json_encode($authUser['email'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+                fullName: <?= json_encode($authUser['full_name'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+                roleId: <?= json_encode($authUser['role_id'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+                role: <?= json_encode($authUser['role'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+                sessionId: <?= json_encode($authUser['session_id'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+                initials: <?= json_encode($authUserInitials, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
+                resetRequired: <?= json_encode($authUser['reset_required'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
+            });
+        </script>
     </div>
 </header>

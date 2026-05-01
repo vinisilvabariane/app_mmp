@@ -10,7 +10,11 @@ class UserModel
     public function findByEmail(string $email): ?array
     {
         $pdo = Connection::connect();
-        $querySql = 'SELECT * FROM users WHERE email = :email LIMIT 1';
+        $querySql = 'SELECT users.*, roles.name AS role_name
+            FROM users
+            INNER JOIN roles ON roles.id = users.role_id
+            WHERE users.email = :email
+            LIMIT 1';
         $statement = $pdo->prepare($querySql);
         $statement->bindValue(':email', $email, PDO::PARAM_STR);
         $statement->execute();
@@ -41,47 +45,27 @@ class UserModel
     public function create(string $email, string $passwordHash, ?string $fullName = null): int
     {
         $pdo = Connection::connect();
-        $pdo->beginTransaction();
+        $roleQuery = "SELECT id
+            FROM roles
+            WHERE active = 1
+            ORDER BY CASE WHEN name = 'user' THEN 0 ELSE 1 END, id ASC
+            LIMIT 1";
+        $roleId = (int) $pdo->query($roleQuery)->fetchColumn();
 
-        try {
-            $roleQuery = "SELECT id
-                FROM roles
-                WHERE active = 1
-                ORDER BY CASE WHEN name = 'user' THEN 0 ELSE 1 END, id ASC
-                LIMIT 1";
-            $roleId = (int) $pdo->query($roleQuery)->fetchColumn();
-
-            if ($roleId <= 0) {
-                throw new \RuntimeException('Nenhum perfil ativo foi encontrado para criar o usuario.');
-            }
-
-            $querySql = 'INSERT INTO users (email, password_hash, full_name, role_id, is_active, reset_required)
-                VALUES (:email, :password_hash, :full_name, :role_id, 1, 0)';
-            $statement = $pdo->prepare($querySql);
-            $statement->bindValue(':email', $email, PDO::PARAM_STR);
-            $statement->bindValue(':password_hash', $passwordHash, PDO::PARAM_STR);
-            $statement->bindValue(':full_name', $fullName, $fullName !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
-            $statement->bindValue(':role_id', $roleId, PDO::PARAM_INT);
-            $statement->execute();
-
-            $userId = (int) $pdo->lastInsertId();
-
-            $userRoleSql = 'INSERT INTO user_roles (user_id, role_id) VALUES (:user_id, :role_id)';
-            $userRoleStatement = $pdo->prepare($userRoleSql);
-            $userRoleStatement->bindValue(':user_id', $userId, PDO::PARAM_INT);
-            $userRoleStatement->bindValue(':role_id', $roleId, PDO::PARAM_INT);
-            $userRoleStatement->execute();
-
-            $pdo->commit();
-
-            return $userId;
-        } catch (\Throwable $exception) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-
-            throw $exception;
+        if ($roleId <= 0) {
+            throw new \RuntimeException('Nenhum perfil ativo foi encontrado para criar o usuario.');
         }
+
+        $querySql = 'INSERT INTO users (email, password_hash, full_name, role_id, session_id, is_active, reset_required)
+            VALUES (:email, :password_hash, :full_name, :role_id, NULL, 1, 0)';
+        $statement = $pdo->prepare($querySql);
+        $statement->bindValue(':email', $email, PDO::PARAM_STR);
+        $statement->bindValue(':password_hash', $passwordHash, PDO::PARAM_STR);
+        $statement->bindValue(':full_name', $fullName, $fullName !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $statement->bindValue(':role_id', $roleId, PDO::PARAM_INT);
+        $statement->execute();
+
+        return (int) $pdo->lastInsertId();
     }
 
     public function getAll(): array
@@ -95,11 +79,40 @@ class UserModel
     public function getById(int $id): ?array
     {
         $pdo = Connection::connect();
-        $querySql = 'SELECT * FROM users WHERE id = :id';
+        $querySql = 'SELECT users.*, roles.name AS role_name
+            FROM users
+            INNER JOIN roles ON roles.id = users.role_id
+            WHERE users.id = :id';
         $statement = $pdo->prepare($querySql);
         $statement->bindParam(':id', $id, PDO::PARAM_INT);
         $statement->execute();
 
         return $statement->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function updateSessionId(int $id, ?string $sessionId): void
+    {
+        $pdo = Connection::connect();
+        $querySql = 'UPDATE users SET session_id = :session_id WHERE id = :id';
+        $statement = $pdo->prepare($querySql);
+        $statement->bindValue(':session_id', $sessionId, $sessionId !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
+        $statement->bindValue(':id', $id, PDO::PARAM_INT);
+        $statement->execute();
+    }
+
+    public function getSessionIdByUserId(int $id): ?string
+    {
+        $pdo = Connection::connect();
+        $querySql = 'SELECT session_id FROM users WHERE id = :id LIMIT 1';
+        $statement = $pdo->prepare($querySql);
+        $statement->bindValue(':id', $id, PDO::PARAM_INT);
+        $statement->execute();
+
+        $sessionId = $statement->fetchColumn();
+        if ($sessionId === false || $sessionId === null) {
+            return null;
+        }
+
+        return (string) $sessionId;
     }
 }

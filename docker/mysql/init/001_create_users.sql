@@ -11,29 +11,17 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(150) DEFAULT NULL,
     role_id INT NOT NULL,
+    session_id VARCHAR(128) DEFAULT NULL,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     reset_required TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY email (email),
+    UNIQUE KEY session_id (session_id),
     CONSTRAINT fk_users_role
         FOREIGN KEY (role_id) REFERENCES roles(id)
         ON DELETE RESTRICT
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS user_roles (
-    user_id INT NOT NULL,
-    role_id INT NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-    CONSTRAINT fk_user_roles_user
-        FOREIGN KEY (user_id) REFERENCES users(id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_user_roles_role
-        FOREIGN KEY (role_id) REFERENCES roles(id)
-        ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -67,16 +55,4 @@ WHERE roles.name = 'admin'
       SELECT 1
       FROM users
       WHERE email = 'vinisilvabariane10@gmail.com'
-  );
-
-INSERT INTO user_roles (user_id, role_id)
-SELECT users.id, roles.id
-FROM users
-INNER JOIN roles ON roles.id = users.role_id
-WHERE users.email = 'vinisilvabariane10@gmail.com'
-  AND NOT EXISTS (
-      SELECT 1
-      FROM user_roles
-      WHERE user_id = users.id
-        AND role_id = roles.id
   );
