@@ -105,6 +105,12 @@ body {
     transform: rotate(45deg);
 }
 
+.brand-logo {
+    width: 75px;
+    height: 75px;
+    object-fit: contain;
+}
+
 .top-nav {
     display: flex;
     align-items: center;
@@ -1387,4 +1393,264 @@ body {
     .home-page .hero-info-cards::before {
         transform: none;
     }
+}
+
+.admin-page {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+}
+
+.admin-page #main-content {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+}
+
+.admin-page .home-rebuilt {
+    display: block; /* remove comportamento de sections full screen */
+}
+
+.admin-page .hero-panel {
+    min-height: auto; /* remove o "tela cheia" */
+    opacity: 1;
+    transform: none;
+    filter: none;
+}
+
+.admin-page .modal {
+    padding-top: 80px; /* empurra o modal pra baixo da navbar */
+}
+
+.admin-page .modal-dialog {
+    margin-top: 0;
+}
+
+.chart-card {
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-card canvas {
+    flex: 1;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 240px;
+}
+
+.admin-page .modal-grafico-fixo {
+    max-width: 800px;
+    width: 100%;
+}
+
+.admin-page .modal-grafico-fixo .modal-content {
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-page .grafico-body {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-page .grafico-body canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.admin-page .modal {
+    z-index: 2000 !important;
+}
+
+.admin-page .modal-backdrop {
+    z-index: 1990 !important;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    background: var(--color3);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+
+#avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* SIDEBAR */
+.profile-sidebar {
+    position: sticky;
+    top: 90px;
+}
+
+/* AVATAR GRANDE */
+.avatar-large {
+    width: 90px;
+    height: 90px;
+    font-size: 1.6rem;
+    margin: 0 auto;
+}
+
+/* MENU */
+.profile-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.profile-link {
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: var(--color2);
+    font-weight: 600;
+    font-family: 'Sora', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.profile-link:hover {
+    background: rgba(69, 147, 108, 0.08);
+    color: var(--color1);
+}
+
+.profile-link.active {
+    background: rgba(154, 204, 119, 0.25);
+    color: var(--color1);
+}
+
+/* BIO */
+.profile-bio-box {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.bio-toolbar {
+    border-bottom: 1px solid var(--stroke);
+    padding: 6px;
+    background: rgba(248, 249, 241, 0.9);
+}
+
+.bio-toolbar button {
+    border: none;
+}
+
+/* RESPONSIVO */
+@media (max-width: 768px) {
+    .profile-sidebar {
+        position: relative;
+        top: 0;
+    }
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.photo-crop-area {
+    width: 300px;
+    height: 300px;
+    margin: auto;
+    border-radius: 50%;
+    overflow: hidden;
+    background: rgba(0,0,0,0.05);
+}
+
+.preview-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.cropper-view-box,
+.cropper-face {
+    border-radius: 50%;
+}
+
+.cropper-view-box {
+    outline: 2px solid var(--color3);
+    outline-offset: 2px;
+}
+
+.trail-item {
+    background: #fff;
+    transition: 0.2s;
+}
+
+.trail-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--soft-shadow);
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, var(--color3), var(--color4));
+}
+
+.learning-flow {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+}
+
+.flow-step {
+    min-width: 200px;
+    text-align: center;
+    position: relative;
+}
+
+.flow-circle {
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color3), var(--color2));
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.flow-circle.completed {
+    background: linear-gradient(135deg, var(--color4), var(--color3));
+}
+
+.flow-circle.locked {
+    background: #ccc;
+}
+
+.flow-title {
+    font-weight: 600;
+}
+
+.flow-desc {
+    font-size: 0.85rem;
+    color: var(--color2);
+}
+
+.flow-line {
+    height: 4px;
+    min-width: 60px;
+    background: linear-gradient(90deg, var(--color3), var(--color4));
 }

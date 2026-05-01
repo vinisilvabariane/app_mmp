@@ -34,29 +34,43 @@
     const validateStep = () => {
         const step = steps[current]
         const requiredFields = Array.from(step.querySelectorAll('input[required], textarea[required], select[required]'))
-        const radioNamesChecked = new Set()
+
+        const checkedRadios = new Set()
+        const checkedCheckboxGroups = new Set()
 
         for (const field of requiredFields) {
+
             if (field.type === 'radio') {
-                if (radioNamesChecked.has(field.name)) continue
+                if (checkedRadios.has(field.name)) continue
+
                 const checked = step.querySelector(`input[type="radio"][name="${field.name}"]:checked`)
                 if (!checked) {
-                    showToast('error', 'Lorem ipsum dolor sit amet.')
+                    showToast('error', 'Selecione uma opção para continuar.')
                     return false
                 }
-                radioNamesChecked.add(field.name)
+
+                checkedRadios.add(field.name)
                 continue
             }
+
             if (field.type === 'checkbox') {
-                if (!field.checked) {
-                    showToast('error', 'Lorem ipsum dolor sit amet.')
+                if (checkedCheckboxGroups.has(field.name)) continue
+
+                const group = step.querySelectorAll(`input[type="checkbox"][name="${field.name}"]`)
+                const checked = Array.from(group).some(cb => cb.checked)
+
+                if (!checked) {
+                    showToast('error', 'Selecione pelo menos uma opção.')
                     return false
                 }
+
+                checkedCheckboxGroups.add(field.name)
                 continue
             }
+
             if (!String(field.value || '').trim()) {
                 field.focus()
-                showToast('error', 'Lorem ipsum dolor sit amet.')
+                showToast('error', 'Preencha este campo antes de continuar.')
                 return false
             }
         }
@@ -74,9 +88,12 @@
 
         const progress = ((current + 1) / total) * 100
         if (progressFill) progressFill.style.width = `${progress}%`
-        if (progressText) progressText.textContent = `Lorem ${current + 1} de ${total}`
+        if (progressText) {
+            progressText.textContent = `Pergunta ${current + 1} de ${total}`
+        }
 
         prevBtn.disabled = current === 0
+
         const isLast = current === total - 1
         nextBtn.classList.toggle('d-none', isLast)
         submitBtn.classList.toggle('d-none', !isLast)
@@ -91,6 +108,7 @@
 
     nextBtn.addEventListener('click', () => {
         if (!validateStep()) return
+
         if (current < total - 1) {
             current += 1
             updateWizard()
@@ -99,8 +117,11 @@
 
     form.addEventListener('submit', (event) => {
         event.preventDefault()
+
         if (!validateStep()) return
-        showToast('success', 'Lorem ipsum dolor sit amet.')
+
+        showToast('success', 'Formulário enviado com sucesso!')
+
         form.reset()
         current = 0
         updateWizard()
@@ -108,5 +129,3 @@
 
     updateWizard()
 })
-
-

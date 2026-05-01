@@ -8,6 +8,7 @@ use App\routers\LoginRouter;
 use App\routers\AdminRouter;
 use App\routers\TesteRouter;
 use App\routers\ChatRouter;
+use App\routers\ProfileRouter;
 
 class Router
 {
@@ -30,6 +31,7 @@ class Router
             '/teste' => [TesteRouter::class, 'index'],
             '/chat' => [ChatRouter::class, 'index'],
             '/chat/message' => [ChatRouter::class, 'message'],
+            '/profile' => [ProfileRouter::class, 'index'],
         ];
         if (!isset($routes[$routePath])) {
             http_response_code(404);
@@ -66,7 +68,7 @@ class Router
         if ($path === '' || $path === false || $path === '/index.php') {
             $queryPage = isset($_GET['page']) ? trim((string)$_GET['page']) : '';
             $queryRoute = strtolower($queryPage);
-            if (in_array($queryRoute, ['home', 'forms', 'admin'], true)) {
+            if (in_array($queryRoute, ['home', 'forms', 'admin', 'profile'], true)) {
                 return '/' . $queryRoute;
             }
             return '/';

@@ -10,7 +10,7 @@ $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
 <header class="top-nav-shell">
     <div class="top-nav-inner">
         <a href="<?= $homeUrl ?>" class="brand-mark" aria-label="Lorem Ipsum Lorem">
-            <span class="brand-dot"></span>
+            <img src="<?= $basePath ?>/public/img/logo-v2.png" alt="Logo" class="brand-logo">
             <span class="brand-text">Map My Path</span>
         </a>
         <nav id="sidebar" class="top-nav" aria-label="Lorem ipsum">
@@ -30,6 +30,25 @@ $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
                 class="nav-link-item <?= $currentRoute === '/chat' ? 'active' : '' ?>">
                 Chat
             </a>
+
+            <a href="<?= $basePath ?>/profile"
+                class="nav-link-item <?= $currentRoute === '/profile' ? 'active' : '' ?>">
+                    <div class="avatar-circle" id="avatar">
+                        <span id="avatar-initials"></span>
+                        <img id="avatar-img" src="" alt="Avatar" style="display: none;">
+                    </div>
+            </a>
+
+            <script>
+                function getInitials(name) {
+                    const parts = name.trim().split(" ").filter(p => p);
+                    if (parts.length === 1) return parts[0][0];
+                    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                }
+                const userName = localStorage.getItem("userName") || "Maria Clara";
+                document.getElementById("avatar-initials").textContent = getInitials(userName);
+            </script>
+
             <a href="<?= $logoutUrl ?>" class="nav-link-item">
                 Sair
             </a>

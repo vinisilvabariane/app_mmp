@@ -266,3 +266,4 @@ class LoginController
         return rtrim($this->basePath(), '/') . $path;
     }
 }
+

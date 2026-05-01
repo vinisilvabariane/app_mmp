@@ -11,7 +11,7 @@ if (homeSections.length > 0) {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible')
-                    }
+                    }   
                 })
             },
             {
