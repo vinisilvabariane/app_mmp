@@ -20,18 +20,14 @@ if (!function_exists('mmp_initials')) {
         if ($name === '') {
             return '?';
         }
-
         $parts = preg_split('/\s+/', $name) ?: [];
         $parts = array_values(array_filter($parts, static fn($part) => $part !== ''));
-
         if (count($parts) === 0) {
             return '?';
         }
-
         if (count($parts) === 1) {
             return strtoupper(substr($parts[0], 0, 1));
         }
-
         return strtoupper(substr($parts[0], 0, 1) . substr($parts[count($parts) - 1], 0, 1));
     }
 }
@@ -55,12 +51,13 @@ $authUserInitials = mmp_initials($authUserName);
                     Formulário
                 </a>
 
+                <?php if ($authUser && isset($authUser['role']) && $authUser['role'] === 'admin'): ?>
+                    <a href="<?= $adminUrl ?>"
+                        class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
+                        Gerenciamento
+                    </a>
+                <?php endif; ?>
 
-                
-                <a href="<?= $adminUrl ?>"
-                    class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
-                    Gerenciamento
-                </a>
                 <a href="<?= $chatUrl ?>"
                     class="nav-link-item <?= $currentRoute === '/chat' ? 'active' : '' ?>">
                     Chat
@@ -88,7 +85,7 @@ $authUserInitials = mmp_initials($authUserName);
             </details>
         </div>
 
-        <script>
+        <!-- <script>
             console.log('Navbar session user', {
                 id: <?= json_encode($authUser['id'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
                 email: <?= json_encode($authUser['email'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
@@ -99,6 +96,6 @@ $authUserInitials = mmp_initials($authUserName);
                 initials: <?= json_encode($authUserInitials, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>,
                 resetRequired: <?= json_encode($authUser['reset_required'] ?? null, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>
             });
-        </script>
+        </script> -->
     </div>
 </header>
