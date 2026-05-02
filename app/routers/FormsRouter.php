@@ -12,9 +12,13 @@ class FormsRouter
         $action = $_GET['action'] ?? 'index';
 
         switch ($action) {
+            case 'save': 
+                $controller->save($_POST); 
+                break;
             case 'index':
             default:
-                $controller->index();
+                $controller->index(); 
+                break;
         }
     }
 }
