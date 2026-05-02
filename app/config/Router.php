@@ -11,7 +11,7 @@ use App\routers\ProfileRouter;
 
 class Router
 {
-    public function dispatch($requestUri, $scriptName)
+    public function dispatch(string $requestUri, string $scriptName): void
     {
         $basePath = $this->extractBasePath($scriptName);
         $routePath = $this->extractRoutePath($requestUri, $basePath);
@@ -53,7 +53,7 @@ class Router
         $controller->$action();
     }
 
-    private function extractBasePath($scriptName)
+    private function extractBasePath(string $scriptName)
     {
         $normalizedScript = str_replace('\\', '/', (string)$scriptName);
         $basePath = str_replace('/index.php', '', $normalizedScript);
@@ -64,9 +64,9 @@ class Router
         return $basePath;
     }
 
-    private function extractRoutePath($requestUri, $basePath)
+    private function extractRoutePath(string $requestUri, string $basePath)
     {
-        $path = parse_url((string)$requestUri, PHP_URL_PATH);
+        $path = parse_url($requestUri, PHP_URL_PATH);
         $path = str_replace('\\', '/', (string)$path);
         if ($basePath !== '' && strpos($path, $basePath) === 0) {
             $path = substr($path, strlen($basePath));
