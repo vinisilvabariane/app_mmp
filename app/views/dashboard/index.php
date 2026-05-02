@@ -9,7 +9,7 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administração - Professor</title>
+    <title>Dashboard - Professor</title>
     <link rel="icon" type="image/png" href="<?= $basePath ?>/public/img/com-fundo-maior.png" sizes="512x512">
     <link rel="apple-touch-icon" href="<?= $basePath ?>/public/img/com-fundo-maior.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,14 +27,13 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
     <main id="main-content">
         <section class="container mt-4 fade-in-up">
             <header class="main-header fade-in-up">
-                <h1 class="system-title">Painel Adminitrativo do Professor</h1>
-                <p class="system-subtitle">Visualize respostas dos alunos, acompanhe desempenho e identifique padrões de aprendizagem.</p>
+                <h1 class="system-title">Dashboard do Professor</h1>
+                <p class="system-subtitle">Visualize respostas dos alunos, acompanhe desempenho e identifique padroes de aprendizagem.</p>
             </header>
         </section>
 
         <section class="container mt-4 fade-in-up">
             <div class="row g-3">
-
                 <div class="col-md-3">
                     <div class="card p-3 shadow-sm">
                         <h6>Total de Alunos</h6>
@@ -44,7 +43,7 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
 
                 <div class="col-md-3">
                     <div class="card p-3 shadow-sm">
-                        <h6>Média de Engajamento</h6>
+                        <h6>Media de Engajamento</h6>
                         <h3 id="media-engajamento">--</h3>
                     </div>
                 </div>
@@ -62,13 +61,11 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                         <h3 id="tempo-estudo">--</h3>
                     </div>
                 </div>
-
             </div>
         </section>
 
         <div class="container mt-4">
             <div class="row g-3">
-
                 <div class="col-md-6">
                     <div class="card p-3 h-100 chart-card">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -92,14 +89,12 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                         <canvas id="graficoRisco"></canvas>
                     </div>
                 </div>
-
             </div>
         </div>
 
         <section class="container mt-4 fade-in-up">
             <div class="card shadow-sm mb-4 filter-card">
                 <div class="card-body">
-
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5 class="mb-0">Filtros</h5>
 
@@ -109,7 +104,6 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                     </div>
 
                     <div class="row g-4 align-items-end">
-
                         <div class="col-md-6">
                             <label class="form-label small text-muted">Curso</label>
                             <div class="input-group custom-filter">
@@ -130,15 +124,13 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                                 </span>
                                 <select id="filter-semestre" class="form-select">
                                     <option value="">Todos os semestres</option>
-                                    <?php for($i=1;$i<=10;$i++): ?>
-                                    <option value="<?= $i ?>"><?= $i ?></option>
+                                    <?php for ($i = 1; $i <= 10; $i++): ?>
+                                        <option value="<?= $i ?>"><?= $i ?></option>
                                     <?php endfor; ?>
                                 </select>
                             </div>
                         </div>
-
                     </div>
-
                 </div>
             </div>
         </section>
@@ -158,12 +150,10 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                                 <th>Curso</th>
                                 <th>Semestre</th>
                                 <th>Engajamento</th>
-                                <th>Ações</th>
+                                <th>Acoes</th>
                             </tr>
                         </thead>
-                        <tbody id="tabela-alunos">
-                            <!-- preenchido via JS -->
-                        </tbody>
+                        <tbody id="tabela-alunos"></tbody>
                     </table>
                 </div>
             </div>
@@ -176,32 +166,28 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                         <h5>Detalhes do Aluno</h5>
                         <button class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="modal-body" id="detalhe-aluno">
-                        <!-- preenchido via JS -->
-                    </div>
+                    <div class="modal-body" id="detalhe-aluno"></div>
                 </div>
             </div>
         </div>
-        
+
         <div class="modal fade" id="modalGrafico" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered modal-lg modal-grafico-fixo">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 id="tituloGrafico">Gráfico</h5>
+                        <h5 id="tituloGrafico">Grafico</h5>
                         <button class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <canvas id="graficoExpandido"></canvas>
                     </div>
-
                 </div>
             </div>
         </div>
-
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="<?= $basePath ?>/public/js/admin/script.js"></script>
+    <script type="module" src="<?= $basePath ?>/public/js/dashboard/script.js"></script>
     <?php include_once __DIR__ . '/../../../includes/footer.php'; ?>
     <?php include_once __DIR__ . '/../../../includes/dependencies.php'; ?>
 </body>

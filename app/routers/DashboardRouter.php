@@ -2,13 +2,13 @@
 
 namespace App\routers;
 
-use App\controllers\AdminController;
+use App\controllers\DashboardController;
 
 class DashboardRouter
 {
     public function index(): void
     {
-        $controller = new AdminController();
+        $controller = new DashboardController();
         $action = $_GET['action'] ?? 'index';
 
         switch ($action) {
