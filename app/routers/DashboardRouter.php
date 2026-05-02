@@ -10,6 +10,7 @@ class DashboardRouter
     {
         $controller = new AdminController();
         $action = $_GET['action'] ?? 'index';
+
         switch ($action) {
             case 'index':
             default:

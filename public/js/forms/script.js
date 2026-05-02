@@ -1,8 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     'use strict'
 
+    const QUESTION_DEFINITIONS = Array.isArray(window.FORM_QUESTION_DEFINITIONS)
+        ? window.FORM_QUESTION_DEFINITIONS
+        : []
+
     const form = document.getElementById('education-interest-form')
-    const steps = Array.from(document.querySelectorAll('.wizard-step'))
     const track = document.getElementById('wizard-track')
     const prevBtn = document.getElementById('wizard-prev')
     const nextBtn = document.getElementById('wizard-next')
@@ -11,13 +14,128 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressText = document.getElementById('wizard-progress-text')
     const stepper = document.getElementById('wizard-stepper')
 
-    if (!form || steps.length === 0 || !track || !prevBtn || !nextBtn || !submitBtn || !stepper) {
+    if (!form || !track || !prevBtn || !nextBtn || !submitBtn || !stepper) {
+        return
+    }
+
+    const buildScaleOptions = (question) => {
+        const labels = Array.isArray(question.escala) && question.escala.length === 5
+            ? question.escala
+            : ['1', '2', '3', '4', '5']
+
+        return labels.map((label, index) => ({
+            value: String(index + 1),
+            label
+        }))
+    }
+
+    const applyAttributes = (element, attributes = {}) => {
+        Object.entries(attributes).forEach(([key, value]) => {
+            element.setAttribute(key, value)
+        })
+    }
+
+    const renderDissertativa = (question) => {
+        const inputType = question.input || 'textarea'
+
+        if (inputType === 'textarea') {
+            const textarea = document.createElement('textarea')
+            textarea.name = question.id
+            textarea.className = 'form-control wizard-textarea'
+            if (question.obrigatoria) {
+                textarea.required = true
+            }
+            applyAttributes(textarea, question.attributes)
+            return textarea
+        }
+
+        const input = document.createElement('input')
+        input.type = inputType
+        input.name = question.id
+        input.className = 'form-control'
+        if (question.obrigatoria) {
+            input.required = true
+        }
+        applyAttributes(input, question.attributes)
+        return input
+    }
+
+    const renderMultiplaEscolha = (question, options) => {
+        const optionsWrap = document.createElement('div')
+        optionsWrap.className = 'wizard-options'
+
+        const inputType = question.multipla ? 'checkbox' : 'radio'
+        const inputName = question.multipla ? `${question.id}[]` : question.id
+
+        options.forEach((option, index) => {
+            const label = document.createElement('label')
+            label.className = 'wizard-option'
+
+            const input = document.createElement('input')
+            input.type = inputType
+            input.name = inputName
+            input.value = option.value
+            if (question.obrigatoria && index === 0) {
+                input.required = true
+            }
+
+            const text = document.createElement('span')
+            text.textContent = option.label
+
+            label.appendChild(input)
+            label.appendChild(text)
+            optionsWrap.appendChild(label)
+        })
+
+        return optionsWrap
+    }
+
+    const renderQuestionField = (question) => {
+        if (question.tipo === 'dissertativa') {
+            return renderDissertativa(question)
+        }
+
+        if (question.tipo === 'intensidade_1_5') {
+            return renderMultiplaEscolha(question, buildScaleOptions(question))
+        }
+
+        if (question.tipo === 'multipla_escolha') {
+            return renderMultiplaEscolha(question, question.opcoes || [])
+        }
+
+        throw new Error(`Tipo de pergunta nao suportado: ${question.tipo}`)
+    }
+
+    const buildSteps = () => {
+        track.innerHTML = ''
+
+        QUESTION_DEFINITIONS.forEach((question, index) => {
+            const step = document.createElement('fieldset')
+            step.className = `wizard-step${index === 0 ? ' active' : ''}`
+            step.dataset.step = String(index + 1)
+            step.dataset.questionId = question.id
+
+            const legend = document.createElement('legend')
+            legend.className = 'wizard-question'
+            legend.textContent = question.enunciado
+
+            step.appendChild(legend)
+            step.appendChild(renderQuestionField(question))
+            track.appendChild(step)
+        })
+    }
+
+    buildSteps()
+
+    const steps = Array.from(track.querySelectorAll('.wizard-step'))
+    if (steps.length === 0) {
         return
     }
 
     let current = 0
     const total = steps.length
     const stepButtons = []
+
     const escapeSelectorValue = (value) => {
         if (window.CSS && typeof window.CSS.escape === 'function') {
             return window.CSS.escape(value)
@@ -246,6 +364,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const buildStepper = () => {
+        stepper.innerHTML = ''
+
         steps.forEach((step, index) => {
             const button = document.createElement('button')
             button.type = 'button'

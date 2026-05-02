@@ -7,7 +7,7 @@ $currentRoute = isset($_SERVER['APP_CURRENT_ROUTE']) ? (string)$_SERVER['APP_CUR
 $homeUrl = ($basePath !== '' ? $basePath : '') . '/home';
 $formsUrl = ($basePath !== '' ? $basePath : '') . '/forms';
 $logoutUrl = ($basePath !== '' ? $basePath : '') . '/logout';
-$adminUrl = ($basePath !== '' ? $basePath : '') . '/admin';
+$dashboardUrl = ($basePath !== '' ? $basePath : '') . '/dashboard';
 $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
 $profileUrl = ($basePath !== '' ? $basePath : '') . '/profile';
 $authUser = Auth::user();
@@ -52,9 +52,9 @@ $authUserInitials = mmp_initials($authUserName);
                 </a>
 
                 <?php if ($authUser && isset($authUser['role']) && $authUser['role'] === 'admin'): ?>
-                    <a href="<?= $adminUrl ?>"
-                        class="nav-link-item <?= $currentRoute === '/admin' ? 'active' : '' ?>">
-                        Gerenciamento
+                    <a href="<?= $dashboardUrl ?>"
+                        class="nav-link-item <?= $currentRoute === '/dashboard' ? 'active' : '' ?>">
+                        Dashboard
                     </a>
                 <?php endif; ?>
 

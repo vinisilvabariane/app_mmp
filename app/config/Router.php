@@ -5,8 +5,7 @@ namespace App\config;
 use App\routers\HomeRouter;
 use App\routers\FormsRouter;
 use App\routers\LoginRouter;
-use App\routers\AdminRouter;
-use App\routers\TesteRouter;
+use App\routers\DashboardRouter;
 use App\routers\ChatRouter;
 use App\routers\ProfileRouter;
 
@@ -27,8 +26,7 @@ class Router
             '/logout' => [LoginRouter::class, 'logout'],
             '/home' => [HomeRouter::class, 'index'],
             '/forms' => [FormsRouter::class, 'index'],
-            '/admin' => [AdminRouter::class, 'index'],
-            '/teste' => [TesteRouter::class, 'index'],
+            '/dashboard' => [DashboardRouter::class, 'index'],
             '/chat' => [ChatRouter::class, 'index'],
             '/chat/message' => [ChatRouter::class, 'message'],
             '/profile' => [ProfileRouter::class, 'index'],
@@ -68,7 +66,7 @@ class Router
         if ($path === '' || $path === false || $path === '/index.php') {
             $queryPage = isset($_GET['page']) ? trim((string)$_GET['page']) : '';
             $queryRoute = strtolower($queryPage);
-            if (in_array($queryRoute, ['home', 'forms', 'admin', 'profile'], true)) {
+            if (in_array($queryRoute, ['home', 'forms', 'dashboard', 'profile'], true)) {
                 return '/' . $queryRoute;
             }
             return '/';
