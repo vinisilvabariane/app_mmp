@@ -1236,6 +1236,18 @@ body {
         min-width: 160px;
     }
 
+    .nav-admin-dropdown {
+        left: auto;
+        right: 0;
+        min-width: 190px;
+    }
+
+    .dashboard-grid,
+    .dashboard-form-grid,
+    .dashboard-inline-grid {
+        grid-template-columns: 1fr;
+    }
+
     .home-right-bubble {
         width: 48px;
         height: 48px;
@@ -1739,6 +1751,67 @@ body {
     color: #7f1f25;
 }
 
+.nav-admin-menu {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.nav-admin-toggle {
+    list-style: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.nav-admin-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.nav-admin-toggle i {
+    color: var(--color2);
+    font-size: 0.8rem;
+    transition: transform 0.2s ease;
+}
+
+.nav-admin-menu[open] .nav-admin-toggle i {
+    transform: rotate(180deg);
+}
+
+.nav-admin-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    min-width: 220px;
+    padding: 8px;
+    border: 1px solid rgba(51, 79, 83, 0.12);
+    border-radius: 16px;
+    background: rgba(248, 249, 241, 0.98);
+    box-shadow: 0 18px 40px rgba(31, 10, 29, 0.16);
+    backdrop-filter: blur(14px);
+    z-index: 1200;
+}
+
+.nav-admin-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    color: var(--color2);
+    text-decoration: none;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-admin-action:hover,
+.nav-admin-action.active {
+    background: rgba(69, 147, 108, 0.08);
+    color: var(--color1);
+}
+
 #avatar-img {
     width: 100%;
     height: 100%;
@@ -1785,6 +1858,123 @@ body {
 .profile-link.active {
     background: rgba(154, 204, 119, 0.25);
     color: var(--color1);
+}
+
+.dashboard-section {
+    display: grid;
+    gap: 18px;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+.dashboard-card {
+    border: 1px solid rgba(51, 79, 83, 0.12);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 10px 26px rgba(31, 10, 29, 0.06);
+}
+
+.dashboard-card .card-body,
+.dashboard-card .card-header {
+    padding: 18px 20px;
+}
+
+.dashboard-card .card-header {
+    border-bottom: 1px solid rgba(51, 79, 83, 0.08);
+    background: transparent;
+}
+
+.dashboard-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.dashboard-form-grid .full {
+    grid-column: 1 / -1;
+}
+
+.dashboard-form-help {
+    color: rgba(51, 79, 83, 0.78);
+    font-size: 0.84rem;
+}
+
+.dashboard-item-list {
+    display: grid;
+    gap: 14px;
+}
+
+.dashboard-item {
+    border: 1px solid rgba(51, 79, 83, 0.12);
+    border-radius: 16px;
+    padding: 16px;
+    background: rgba(248, 249, 241, 0.82);
+}
+
+.dashboard-item.is-inactive {
+    opacity: 0.72;
+    border-style: dashed;
+}
+
+.dashboard-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.dashboard-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+    text-transform: uppercase;
+    background: rgba(154, 204, 119, 0.22);
+    color: var(--color2);
+}
+
+.dashboard-badge.is-inactive {
+    background: rgba(188, 75, 81, 0.12);
+    color: #9f2930;
+}
+
+.dashboard-inline-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.dashboard-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.dashboard-flash {
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-weight: 600;
+}
+
+.dashboard-flash.success {
+    background: rgba(154, 204, 119, 0.2);
+    color: var(--color1);
+}
+
+.dashboard-flash.error {
+    background: rgba(188, 75, 81, 0.12);
+    color: #9f2930;
 }
 
 /* BIO */

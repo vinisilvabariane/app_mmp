@@ -122,6 +122,19 @@ class Auth
         return is_array($user) && isset($user['role']) && (string) $user['role'] === $role;
     }
 
+    public static function requireRole(string $role, string $basePath = ''): void
+    {
+        self::requireAuth($basePath);
+
+        if (self::hasRole($role)) {
+            return;
+        }
+
+        http_response_code(403);
+        echo 'Acesso negado.';
+        exit;
+    }
+
     private static function isActive(array $user): bool
     {
         return (int) ($user['is_active'] ?? 0) === 1;

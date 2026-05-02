@@ -33,6 +33,28 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
         </section>
 
         <section class="container mt-4 fade-in-up">
+            <div class="dashboard-grid mb-4">
+                <article class="dashboard-card">
+                    <div class="dashboard-item-header">
+                        <div>
+                            <h2 class="h5 mb-1">Perguntas</h2>
+                            <p class="mb-0 text-muted">Cadastre, edite e desative perguntas do formulario.</p>
+                        </div>
+                        <a href="<?= $basePath ?>/dashboard/questions" class="btn btn-primary">Gerenciar</a>
+                    </div>
+                </article>
+
+                <article class="dashboard-card">
+                    <div class="dashboard-item-header">
+                        <div>
+                            <h2 class="h5 mb-1">Metricas</h2>
+                            <p class="mb-0 text-muted">Defina as metricas usadas nos calculos e mapeamentos.</p>
+                        </div>
+                        <a href="<?= $basePath ?>/dashboard/metrics" class="btn btn-primary">Gerenciar</a>
+                    </div>
+                </article>
+            </div>
+
             <div class="row g-3">
                 <div class="col-md-3">
                     <div class="card p-3 shadow-sm">

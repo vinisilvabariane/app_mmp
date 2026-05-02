@@ -8,10 +8,13 @@ $homeUrl = ($basePath !== '' ? $basePath : '') . '/home';
 $formsUrl = ($basePath !== '' ? $basePath : '') . '/forms';
 $logoutUrl = ($basePath !== '' ? $basePath : '') . '/logout';
 $dashboardUrl = ($basePath !== '' ? $basePath : '') . '/dashboard';
+$dashboardQuestionsUrl = ($basePath !== '' ? $basePath : '') . '/dashboard/questions';
+$dashboardMetricsUrl = ($basePath !== '' ? $basePath : '') . '/dashboard/metrics';
 $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
 $profileUrl = ($basePath !== '' ? $basePath : '') . '/profile';
 $authUser = Auth::user();
 $authUserName = trim((string) ($authUser['full_name'] ?? ''));
+$isDashboardArea = strpos($currentRoute, '/dashboard') === 0;
 
 if (!function_exists('mmp_initials')) {
     function mmp_initials(string $name): string
@@ -51,18 +54,34 @@ $authUserInitials = mmp_initials($authUserName);
                     Formulário
                 </a>
 
-                <?php if ($authUser && isset($authUser['role']) && $authUser['role'] === 'admin'): ?>
-                    <a href="<?= $dashboardUrl ?>"
-                        class="nav-link-item <?= $currentRoute === '/dashboard' ? 'active' : '' ?>">
-                        Dashboard
-                    </a>
-                <?php endif; ?>
-
                 <a href="<?= $chatUrl ?>"
                     class="nav-link-item <?= $currentRoute === '/chat' ? 'active' : '' ?>">
                     Chat
                 </a>
             </nav>
+
+            <?php if ($authUser && isset($authUser['role']) && $authUser['role'] === 'admin'): ?>
+                <details class="nav-admin-menu <?= $isDashboardArea ? 'is-active' : '' ?>" <?= $isDashboardArea ? 'open' : '' ?>>
+                    <summary class="nav-admin-toggle">
+                        <span class="nav-link-item <?= $isDashboardArea ? 'active' : '' ?>">Admin</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </summary>
+                    <div class="nav-admin-dropdown">
+                        <a href="<?= $dashboardUrl ?>" class="nav-admin-action <?= $currentRoute === '/dashboard' ? 'active' : '' ?>">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Visao Geral</span>
+                        </a>
+                        <a href="<?= $dashboardQuestionsUrl ?>" class="nav-admin-action <?= $currentRoute === '/dashboard/questions' ? 'active' : '' ?>">
+                            <i class="bi bi-ui-checks-grid"></i>
+                            <span>Perguntas</span>
+                        </a>
+                        <a href="<?= $dashboardMetricsUrl ?>" class="nav-admin-action <?= $currentRoute === '/dashboard/metrics' ? 'active' : '' ?>">
+                            <i class="bi bi-activity"></i>
+                            <span>Metricas</span>
+                        </a>
+                    </div>
+                </details>
+            <?php endif; ?>
 
             <details class="nav-profile-menu <?= $currentRoute === '/profile' ? 'is-active' : '' ?>">
                 <summary class="nav-profile-toggle" aria-label="Abrir menu do perfil">
