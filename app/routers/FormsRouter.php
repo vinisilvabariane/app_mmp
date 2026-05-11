@@ -8,17 +8,31 @@ class FormsRouter
 {
     public function index(): void
     {
-        $controller = new FormsController();
-        $action = $_GET['action'] ?? 'index';
+        (new FormsController())->index();
+    }
 
-        switch ($action) {
-            case 'save': 
-                $controller->save($_POST); 
-                break;
-            case 'index':
-            default:
-                $controller->index(); 
-                break;
+    public function save(): void
+    {
+        (new FormsController())->saveAnswers($this->requestData());
+    }
+
+    public function update(): void
+    {
+        (new FormsController())->update($this->requestData());
+    }
+
+    private function requestData(): array
+    {
+        if ($_POST !== []) {
+            return $_POST;
         }
+
+        $rawInput = file_get_contents('php://input');
+        if (!is_string($rawInput) || trim($rawInput) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($rawInput, true);
+        return is_array($decoded) ? $decoded : [];
     }
 }

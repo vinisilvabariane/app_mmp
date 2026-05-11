@@ -6,6 +6,9 @@
       "ext-json": "*",
         "phpmailer/phpmailer": "^7.0"
     },
+    "scripts": {
+        "db:reset": "php bin/db-reset.php"
+    },
     "autoload": {
         "psr-4": {
             "App\\": "app/"

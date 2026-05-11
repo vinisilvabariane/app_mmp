@@ -2,11 +2,11 @@
 
 namespace App\config;
 
-use App\routers\HomeRouter;
-use App\routers\FormsRouter;
-use App\routers\LoginRouter;
-use App\routers\DashboardRouter;
 use App\routers\ChatRouter;
+use App\routers\DashboardRouter;
+use App\routers\FormsRouter;
+use App\routers\HomeRouter;
+use App\routers\LoginRouter;
 use App\routers\ProfileRouter;
 
 class Router
@@ -26,6 +26,8 @@ class Router
             '/logout' => [LoginRouter::class, 'logout'],
             '/home' => [HomeRouter::class, 'index'],
             '/forms' => [FormsRouter::class, 'index'],
+            '/forms/save' => [FormsRouter::class, 'save'],
+            '/forms/update' => [FormsRouter::class, 'update'],
             '/dashboard' => [DashboardRouter::class, 'index'],
             '/dashboard/questions' => [DashboardRouter::class, 'questions'],
             '/dashboard/questions/create' => [DashboardRouter::class, 'createQuestion'],
@@ -38,7 +40,9 @@ class Router
             '/chat' => [ChatRouter::class, 'index'],
             '/chat/message' => [ChatRouter::class, 'message'],
             '/profile' => [ProfileRouter::class, 'index'],
+            '/profile/trail' => [ProfileRouter::class, 'trail'],
         ];
+
         if (!isset($routes[$routePath])) {
             http_response_code(404);
             $_SERVER['APP_BASE_PATH'] = $basePath;
@@ -46,46 +50,53 @@ class Router
             require_once __DIR__ . '/notFound/index.php';
             return;
         }
+
         $_SERVER['APP_BASE_PATH'] = $basePath;
         $_SERVER['APP_CURRENT_ROUTE'] = $routePath;
-        list($controllerClass, $action) = $routes[$routePath];
+        [$controllerClass, $action] = $routes[$routePath];
         $controller = new $controllerClass();
         $controller->$action();
     }
 
-    private function extractBasePath(string $scriptName)
+    private function extractBasePath(string $scriptName): string
     {
-        $normalizedScript = str_replace('\\', '/', (string)$scriptName);
+        $normalizedScript = str_replace('\\', '/', (string) $scriptName);
         $basePath = str_replace('/index.php', '', $normalizedScript);
         $basePath = rtrim($basePath, '/');
         if ($basePath === '' || $basePath === '.') {
             return '';
         }
+
         return $basePath;
     }
 
-    private function extractRoutePath(string $requestUri, string $basePath)
+    private function extractRoutePath(string $requestUri, string $basePath): string
     {
         $path = parse_url($requestUri, PHP_URL_PATH);
-        $path = str_replace('\\', '/', (string)$path);
+        $path = str_replace('\\', '/', (string) $path);
         if ($basePath !== '' && strpos($path, $basePath) === 0) {
             $path = substr($path, strlen($basePath));
         }
+
         if ($path === '' || $path === false || $path === '/index.php') {
-            $queryPage = isset($_GET['page']) ? trim((string)$_GET['page']) : '';
+            $queryPage = isset($_GET['page']) ? trim((string) $_GET['page']) : '';
             $queryRoute = strtolower($queryPage);
             if (in_array($queryRoute, ['home', 'forms', 'dashboard', 'profile'], true)) {
                 return '/' . $queryRoute;
             }
+
             return '/';
         }
+
         if (strpos($path, '/index.php/') === 0) {
             $path = substr($path, strlen('/index.php'));
         }
+
         $path = '/' . trim($path, '/');
         if ($path === '/index.php' || $path === '//') {
             return '/';
         }
+
         return strtolower($path);
     }
 }

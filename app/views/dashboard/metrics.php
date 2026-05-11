@@ -71,61 +71,89 @@ $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath
                     </div>
                 </div>
 
-                <div class="dashboard-item-list">
-                    <?php if ($metrics === []): ?>
-                        <div class="dashboard-item">
-                            <p class="mb-0 text-muted">Nenhuma metrica cadastrada.</p>
-                        </div>
-                    <?php endif; ?>
+                <?php if ($metrics === []): ?>
+                    <div class="dashboard-item">
+                        <p class="mb-0 text-muted">Nenhuma metrica cadastrada.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="dashboard-table-wrap">
+                        <table class="dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>Metrica</th>
+                                    <th>Chave</th>
+                                    <th>Status</th>
+                                    <th>Impactos ativos</th>
+                                    <th>Perguntas ativas</th>
+                                    <th>Acoes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($metrics as $metric): ?>
+                                    <?php
+                                    $metricId = (int) $metric['id'];
+                                    $isActive = (int) $metric['active'] === 1;
+                                    ?>
+                                    <tr class="<?= $isActive ? '' : 'is-inactive' ?>">
+                                        <td>
+                                            <strong><?= htmlspecialchars((string) $metric['name']) ?></strong>
+                                            <?php if (!empty($metric['description'])): ?>
+                                                <p class="dashboard-table-description"><?= htmlspecialchars((string) $metric['description']) ?></p>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><code><?= htmlspecialchars((string) $metric['metric_key']) ?></code></td>
+                                        <td>
+                                            <span class="dashboard-badge <?= $isActive ? '' : 'is-inactive' ?>">
+                                                <?= $isActive ? 'Ativa' : 'Inativa' ?>
+                                            </span>
+                                        </td>
+                                        <td><?= (int) ($metric['active_mapping_count'] ?? 0) ?></td>
+                                        <td><?= (int) ($metric['active_question_count'] ?? 0) ?></td>
+                                        <td>
+                                            <details class="dashboard-inline-editor">
+                                                <summary class="btn btn-outline-primary btn-sm">Editar</summary>
+                                                <div class="dashboard-inline-editor-panel">
+                                                    <form method="post" action="<?= $basePath ?>/dashboard/metrics/update" class="dashboard-form-grid">
+                                                        <input type="hidden" name="metric_id" value="<?= $metricId ?>">
 
-                    <?php foreach ($metrics as $metric): ?>
-                        <?php
-                        $metricId = (int) $metric['id'];
-                        $isActive = (int) $metric['active'] === 1;
-                        ?>
-                        <article class="dashboard-item <?= $isActive ? '' : 'is-inactive' ?>">
-                            <div class="dashboard-item-header">
-                                <div>
-                                    <h3 class="h6 mb-1"><?= htmlspecialchars((string) $metric['name']) ?></h3>
-                                    <p class="mb-0 text-muted"><?= htmlspecialchars((string) $metric['metric_key']) ?></p>
-                                </div>
-                                <span class="dashboard-badge <?= $isActive ? '' : 'is-inactive' ?>">
-                                    <?= $isActive ? 'Ativa' : 'Inativa' ?>
-                                </span>
-                            </div>
+                                                        <div>
+                                                            <label class="form-label">Chave da metrica</label>
+                                                            <input type="text" name="metric_key" class="form-control" value="<?= htmlspecialchars((string) $metric['metric_key']) ?>" required>
+                                                        </div>
 
-                            <form method="post" action="<?= $basePath ?>/dashboard/metrics/update" class="dashboard-form-grid mt-3">
-                                <input type="hidden" name="metric_id" value="<?= $metricId ?>">
+                                                        <div>
+                                                            <label class="form-label">Nome</label>
+                                                            <input type="text" name="name" class="form-control" value="<?= htmlspecialchars((string) $metric['name']) ?>" required>
+                                                        </div>
 
-                                <div>
-                                    <label class="form-label">Chave da metrica</label>
-                                    <input type="text" name="metric_key" class="form-control" value="<?= htmlspecialchars((string) $metric['metric_key']) ?>" required>
-                                </div>
+                                                        <div style="grid-column: 1 / -1;">
+                                                            <label class="form-label">Descricao</label>
+                                                            <textarea name="description" class="form-control" rows="4"><?= htmlspecialchars((string) ($metric['description'] ?? '')) ?></textarea>
+                                                        </div>
 
-                                <div>
-                                    <label class="form-label">Nome</label>
-                                    <input type="text" name="name" class="form-control" value="<?= htmlspecialchars((string) $metric['name']) ?>" required>
-                                </div>
-
-                                <div style="grid-column: 1 / -1;">
-                                    <label class="form-label">Descricao</label>
-                                    <textarea name="description" class="form-control" rows="4"><?= htmlspecialchars((string) ($metric['description'] ?? '')) ?></textarea>
-                                </div>
-
-                                <div class="dashboard-actions" style="grid-column: 1 / -1;">
-                                    <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
-                                </div>
-                            </form>
-
-                            <?php if ($isActive): ?>
-                                <form method="post" action="<?= $basePath ?>/dashboard/metrics/delete" class="dashboard-actions mt-3">
-                                    <input type="hidden" name="metric_id" value="<?= $metricId ?>">
-                                    <button type="submit" class="btn btn-outline-danger">Desativar metrica</button>
-                                </form>
-                            <?php endif; ?>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
+                                                        <div class="dashboard-actions" style="grid-column: 1 / -1;">
+                                                            <button type="submit" class="btn btn-primary">Salvar alteracoes</button>
+                                                            <?php if ($isActive): ?>
+                                                                <button
+                                                                    type="submit"
+                                                                    class="btn btn-outline-danger"
+                                                                    formaction="<?= $basePath ?>/dashboard/metrics/delete"
+                                                                    formmethod="post"
+                                                                >
+                                                                    Desativar metrica
+                                                                </button>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </details>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
             </div>
         </section>
     </main>

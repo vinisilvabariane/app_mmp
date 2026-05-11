@@ -7,10 +7,15 @@ use RuntimeException;
 
 class FormQuestionSyncService
 {
-    public function syncActiveQuestionsToFile(): void
+    public function getActiveQuestionsPayload(): array
     {
         $questions = (new QuestionModel())->getActiveWithRelations();
-        $payload = array_map([$this, 'mapQuestionToFrontend'], $questions);
+        return array_map([$this, 'mapQuestionToFrontend'], $questions);
+    }
+
+    public function syncActiveQuestionsToFile(): void
+    {
+        $payload = $this->getActiveQuestionsPayload();
 
         $script = "window.FORM_QUESTION_DEFINITIONS = " . json_encode(
             $payload,
@@ -40,6 +45,10 @@ class FormQuestionSyncService
             if (is_array($decoded)) {
                 $config = $decoded;
             }
+        }
+
+        if ($mapped['tipo'] === 'intensidade_1_5' && !isset($config['escala'])) {
+            $config['escala'] = ['1', '2', '3', '4', '5'];
         }
 
         if ($mapped['tipo'] === 'multipla_escolha') {

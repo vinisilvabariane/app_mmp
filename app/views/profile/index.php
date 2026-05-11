@@ -6,6 +6,10 @@ $globalStylePath = __DIR__ . '/../../../public/css/global/style.css';
 $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath) : time();
 $authUser = Auth::user();
 $authUserName = trim((string) ($authUser['full_name'] ?? ''));
+$authUserEmail = trim((string) ($authUser['email'] ?? ''));
+$authUserRole = trim((string) ($authUser['role'] ?? ''));
+$authLoginAt = trim((string) ($authUser['login_at'] ?? ''));
+$authResetRequired = !empty($authUser['reset_required']);
 
 if (!function_exists('mmp_initials')) {
     function mmp_initials(string $name): string
@@ -30,7 +34,36 @@ if (!function_exists('mmp_initials')) {
     }
 }
 
+if (!function_exists('mmp_role_label')) {
+    function mmp_role_label(string $role): string
+    {
+        return match (strtolower(trim($role))) {
+            'admin' => 'Administrador',
+            'user' => 'Aluno',
+            default => $role !== '' ? ucfirst($role) : 'Usuario',
+        };
+    }
+}
+
+if (!function_exists('mmp_format_login_at')) {
+    function mmp_format_login_at(string $value): string
+    {
+        if ($value === '') {
+            return 'Nao registrado';
+        }
+
+        try {
+            $date = new DateTimeImmutable($value);
+            return $date->format('d/m/Y H:i');
+        } catch (Throwable) {
+            return $value;
+        }
+    }
+}
+
 $authUserInitials = mmp_initials($authUserName);
+$roleLabel = mmp_role_label($authUserRole);
+$formattedLoginAt = mmp_format_login_at($authLoginAt);
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -43,7 +76,6 @@ $authUserInitials = mmp_initials($authUserName);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= $basePath ?>/public/css/global/style.css?v=<?= $globalStyleVersion ?>">
-    <link rel="stylesheet" href="<?= $basePath ?>/public/css/profile/style.css">
     <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
 </head>
 <body class="admin-page">
@@ -53,50 +85,64 @@ $authUserInitials = mmp_initials($authUserName);
 <main id="main-content">
     <section class="container mt-4 fade-in-up">
         <div class="row g-4">
-            <aside class="col-md-3">
-                <div class="card profile-sidebar p-3 text-center">
+            <aside class="col-lg-4 col-xl-3">
+                <div class="card profile-sidebar profile-sidebar-card p-4 text-center">
                     <div class="profile-avatar mb-3">
                         <div class="avatar-circle avatar-large">
                             <span><?= htmlspecialchars($authUserInitials, ENT_QUOTES, 'UTF-8') ?></span>
                         </div>
                     </div>
 
-                    <h5 class="mb-1"><?= htmlspecialchars($authUserName !== '' ? $authUserName : 'Usuario', ENT_QUOTES, 'UTF-8') ?></h5>
+                    <h1 class="h4 mb-1"><?= htmlspecialchars($authUserName !== '' ? $authUserName : 'Usuario', ENT_QUOTES, 'UTF-8') ?></h1>
+                    <p class="text-muted mb-3"><?= htmlspecialchars($authUserEmail !== '' ? $authUserEmail : 'E-mail nao informado', ENT_QUOTES, 'UTF-8') ?></p>
 
-                    <nav class="profile-menu">
+                    <div class="profile-chip-row">
+                        <span class="dashboard-badge"><?= htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8') ?></span>
+                        <span class="dashboard-badge <?= $authResetRequired ? 'is-inactive' : '' ?>">
+                            <?= $authResetRequired ? 'Troca de senha pendente' : 'Conta ativa' ?>
+                        </span>
+                    </div>
+
+                    <nav class="profile-menu mt-4">
                         <a href="#" class="profile-link" data-tab="trail">Minha trilha</a>
-                        <a href="#" class="profile-link active" data-tab="profile">Perfil</a>
-                        <a href="#" class="profile-link" data-tab="photo">Foto</a>
+                        <a href="#" class="profile-link active" data-tab="profile">Minhas informacoes</a>
+                        <a href="#" class="profile-link" data-tab="photo">Minha foto</a>
                     </nav>
+
+                    <div class="profile-side-actions mt-4">
+                        <a href="<?= $basePath ?>/forms" class="btn btn-primary w-100">Responder formulario</a>
+                        <a href="<?= $basePath ?>/chat" class="btn btn-outline-primary w-100">Abrir chat</a>
+                        <a href="<?= $basePath ?>/login/change-password" class="btn btn-outline-primary w-100">Alterar senha</a>
+                    </div>
                 </div>
             </aside>
 
-            <div class="col-md-9">
-                <div class="card p-4">
+            <div class="col-lg-8 col-xl-9">
+                <div class="card profile-main-card p-4 p-lg-5">
                     <div class="tab-content active" id="tab-trail">
                         <header class="main-header">
-                            <h1 class="system-title">Minha trilha</h1>
-                            <p class="system-subtitle">Seu plano de aprendizado personalizado.</p>
+                            <h2 class="system-title">Minha trilha</h2>
+                            <p class="system-subtitle">Seu plano de aprendizado personalizado gerado a partir do formulario e da analise da IA.</p>
                         </header>
 
                         <div class="row g-3 mb-4">
                             <div class="col-md-4">
-                                <div class="card p-3 text-center">
-                                    <h6>Progresso</h6>
+                                <div class="card p-3 text-center profile-stat-card">
+                                    <h6>Execucao estimada</h6>
                                     <h3 id="progressPercent">0%</h3>
                                 </div>
                             </div>
 
                             <div class="col-md-4">
-                                <div class="card p-3 text-center">
-                                    <h6>Tempo concluido</h6>
+                                <div class="card p-3 text-center profile-stat-card">
+                                    <h6>Carga total</h6>
                                     <h3 id="totalTime">0h</h3>
                                 </div>
                             </div>
 
                             <div class="col-md-4">
-                                <div class="card p-3 text-center">
-                                    <h6>Topicos concluidos</h6>
+                                <div class="card p-3 text-center profile-stat-card">
+                                    <h6>Etapas</h6>
                                     <h3 id="completedCount">0</h3>
                                 </div>
                             </div>
@@ -107,40 +153,85 @@ $authUserInitials = mmp_initials($authUserName);
 
                     <div class="tab-content" id="tab-profile">
                         <header class="main-header">
-                            <h1 class="system-title">Perfil Publico</h1>
-                            <p class="system-subtitle">Visualize e edite informacoes sobre voce.</p>
+                            <h2 class="system-title">Minhas informacoes</h2>
+                            <p class="system-subtitle">Resumo da conta usada para acessar o sistema e acompanhar sua trilha.</p>
                         </header>
 
-                        <input type="text" class="form-control mb-2" placeholder="Primeiro nome">
-                        <input type="text" class="form-control mb-2" placeholder="Sobrenome">
-                        <input type="text" class="form-control mb-2" placeholder="Curso">
+                        <div class="profile-info-grid">
+                            <article class="profile-info-card">
+                                <span class="profile-info-label">Nome completo</span>
+                                <strong class="profile-info-value"><?= htmlspecialchars($authUserName !== '' ? $authUserName : 'Nao informado', ENT_QUOTES, 'UTF-8') ?></strong>
+                            </article>
 
-                        <h5 class="mt-4 mb-3">Objetivos</h5>
+                            <article class="profile-info-card">
+                                <span class="profile-info-label">E-mail</span>
+                                <strong class="profile-info-value"><?= htmlspecialchars($authUserEmail !== '' ? $authUserEmail : 'Nao informado', ENT_QUOTES, 'UTF-8') ?></strong>
+                            </article>
 
-                        <div class="profile-bio-box">
-                            <textarea class="form-control" rows="5"></textarea>
+                            <article class="profile-info-card">
+                                <span class="profile-info-label">Perfil de acesso</span>
+                                <strong class="profile-info-value"><?= htmlspecialchars($roleLabel, ENT_QUOTES, 'UTF-8') ?></strong>
+                            </article>
+
+                            <article class="profile-info-card">
+                                <span class="profile-info-label">Ultimo login</span>
+                                <strong class="profile-info-value"><?= htmlspecialchars($formattedLoginAt, ENT_QUOTES, 'UTF-8') ?></strong>
+                            </article>
+                        </div>
+
+                        <div class="profile-summary-card mt-4">
+                            <h3 class="h5 mb-3">Situacao da conta</h3>
+                            <div class="profile-summary-list">
+                                <div class="profile-summary-item">
+                                    <span>Autenticacao atual</span>
+                                    <strong><?= $authResetRequired ? 'Requer troca de senha' : 'Sessao ativa e valida' ?></strong>
+                                </div>
+                                <div class="profile-summary-item">
+                                    <span>Uso principal</span>
+                                    <strong><?= strtolower($authUserRole) === 'admin' ? 'Administracao do formulario e metricas' : 'Acompanhamento da trilha personalizada' ?></strong>
+                                </div>
+                                <div class="profile-summary-item">
+                                    <span>Proximo passo recomendado</span>
+                                    <strong>Responder o formulario e revisar a trilha gerada pela IA</strong>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div class="tab-content" id="tab-photo">
                         <header class="main-header">
-                            <h1 class="system-title">Foto</h1>
-                            <p class="system-subtitle">Adicione uma foto para seu perfil.</p>
+                            <h2 class="system-title">Minha foto</h2>
+                            <p class="system-subtitle">Escolha uma imagem, recorte no formato circular e visualize como ela pode aparecer no seu perfil.</p>
                         </header>
 
-                        <div class="mb-3">
-                            <input type="file" id="input-image" class="form-control" accept="image/*">
-                        </div>
+                        <div class="row g-4 align-items-start">
+                            <div class="col-lg-7">
+                                <div class="profile-photo-card">
+                                    <label for="input-image" class="form-label">Selecionar imagem</label>
+                                    <input type="file" id="input-image" class="form-control" accept="image/*">
 
-                        <div class="mb-3">
-                            <div class="photo-crop-area">
-                                <img id="image-to-crop" style="max-width:100%; display:none;">
+                                    <div class="photo-crop-area mt-3">
+                                        <img id="image-to-crop" style="max-width:100%; display:none;">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="mt-4 d-flex gap-2">
-                            <button class="btn btn-outline-primary" id="btn-change">Alterar</button>
-                            <button class="btn btn-primary" id="btn-save">Salvar</button>
+                            <div class="col-lg-5">
+                                <div class="profile-photo-card">
+                                    <h3 class="h5 mb-3">Preview</h3>
+                                    <div class="preview-box">
+                                        <div class="avatar-circle avatar-preview">
+                                            <img id="preview-image" alt="Preview da foto" style="display:none;">
+                                            <span id="preview-fallback"><?= htmlspecialchars($authUserInitials, ENT_QUOTES, 'UTF-8') ?></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-4 d-flex gap-2 flex-wrap">
+                                        <button class="btn btn-outline-primary" id="btn-change" type="button">Alterar</button>
+                                        <button class="btn btn-primary" id="btn-save" type="button">Salvar</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

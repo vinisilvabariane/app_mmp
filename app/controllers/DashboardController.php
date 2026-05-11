@@ -12,10 +12,20 @@ use Throwable;
 class DashboardController
 {
     private const FLASH_KEY = 'dashboard_flash';
+    private const QUESTION_TYPES = ['dissertativa', 'intensidade_1_5', 'multipla_escolha'];
 
     public function index(): void
     {
         $this->requireAdmin();
+        $metrics = (new MetricModel())->getAll(true);
+        $questions = (new QuestionModel())->getAllWithRelations();
+        $summary = [
+            'active_metrics' => count(array_filter($metrics, static fn (array $metric): bool => (int) ($metric['active'] ?? 0) === 1)),
+            'inactive_metrics' => count(array_filter($metrics, static fn (array $metric): bool => (int) ($metric['active'] ?? 0) !== 1)),
+            'active_questions' => count(array_filter($questions, static fn (array $question): bool => (int) ($question['active'] ?? 0) === 1)),
+            'inactive_questions' => count(array_filter($questions, static fn (array $question): bool => (int) ($question['active'] ?? 0) !== 1)),
+            'active_mappings' => array_sum(array_map(static fn (array $metric): int => (int) ($metric['active_mapping_count'] ?? 0), $metrics)),
+        ];
         require_once __DIR__ . '/../views/dashboard/index.php';
     }
 
@@ -28,8 +38,7 @@ class DashboardController
 
         $metrics = $metricModel->getAll(false);
         $questions = array_map(function (array $question): array {
-            $question['options_text'] = $this->formatOptionsText($question['options'] ?? []);
-            $question['affects_text'] = $this->formatAffectsText($question['affects'] ?? []);
+            $question['config_fields'] = $this->extractQuestionConfigFields($question['config_json'] ?? null);
             return $question;
         }, $questionModel->getAllWithRelations());
 
@@ -175,22 +184,28 @@ class DashboardController
         $enunciado = trim((string) ($input['enunciado'] ?? ''));
         $questionType = trim((string) ($input['question_type'] ?? ''));
         $questionOrder = isset($input['question_order']) ? (int) $input['question_order'] : 0;
-        $configJson = trim((string) ($input['config_json'] ?? ''));
 
         if ($questionKey === '' || $enunciado === '' || $questionType === '' || $questionOrder <= 0) {
             throw new RuntimeException('Preencha chave, enunciado, tipo e ordem da pergunta.');
         }
 
-        if (!in_array($questionType, ['dissertativa', 'intensidade_1_5', 'multipla_escolha'], true)) {
+        if (!in_array($questionType, self::QUESTION_TYPES, true)) {
             throw new RuntimeException('Tipo de pergunta invalido.');
         }
 
-        if ($configJson !== '') {
-            json_decode($configJson, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new RuntimeException('O campo config_json precisa ser um JSON valido.');
-            }
-        }
+        $options = $this->parseOptionsInput(
+            $input['option_values'] ?? [],
+            $input['option_labels'] ?? [],
+            $questionType
+        );
+
+        $affects = $this->parseAffectsInput(
+            $input['affect_metric_ids'] ?? [],
+            $input['affect_option_values'] ?? [],
+            $input['affect_weights'] ?? [],
+            $input['affect_impact_types'] ?? [],
+            $options
+        );
 
         return [
             'question_key' => $questionKey,
@@ -199,9 +214,9 @@ class DashboardController
             'allows_multiple' => isset($input['allows_multiple']) ? 1 : 0,
             'is_required' => isset($input['is_required']) ? 1 : 0,
             'question_order' => $questionOrder,
-            'config_json' => $configJson !== '' ? $configJson : null,
-            'options' => $this->parseOptionsText((string) ($input['options_text'] ?? '')),
-            'affects' => $this->parseAffectsText((string) ($input['affects_text'] ?? '')),
+            'config_json' => $this->buildQuestionConfigJson($input, $questionType),
+            'options' => $options,
+            'affects' => $affects,
         ];
     }
 
@@ -222,96 +237,182 @@ class DashboardController
         ];
     }
 
-    private function parseOptionsText(string $raw): array
+    private function parseOptionsInput(mixed $valuesInput, mixed $labelsInput, string $questionType): array
     {
-        $lines = preg_split('/\r\n|\r|\n/', trim($raw)) ?: [];
+        $values = is_array($valuesInput) ? array_values($valuesInput) : [];
+        $labels = is_array($labelsInput) ? array_values($labelsInput) : [];
         $options = [];
+        $seenValues = [];
 
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if ($line === '') {
+        $max = max(count($values), count($labels));
+        for ($index = 0; $index < $max; $index++) {
+            $value = trim((string) ($values[$index] ?? ''));
+            $label = trim((string) ($labels[$index] ?? ''));
+
+            if ($value === '' && $label === '') {
                 continue;
             }
 
-            $parts = array_map('trim', explode('|', $line, 2));
-            if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '') {
-                throw new RuntimeException('Cada opcao deve seguir o formato value|Label.');
+            if ($value === '' || $label === '') {
+                throw new RuntimeException('Preencha valor e rótulo em todas as opções informadas.');
+            }
+
+            if (isset($seenValues[$value])) {
+                throw new RuntimeException('Os valores das opções de uma mesma pergunta precisam ser únicos.');
             }
 
             $options[] = [
-                'value' => $parts[0],
-                'label' => $parts[1],
+                'value' => $value,
+                'label' => $label,
             ];
+            $seenValues[$value] = true;
+        }
+
+        if ($questionType === 'multipla_escolha' && count($options) < 2) {
+            throw new RuntimeException('Perguntas de múltipla escolha precisam de pelo menos duas opções.');
         }
 
         return $options;
     }
 
-    private function parseAffectsText(string $raw): array
+    private function parseAffectsInput(
+        mixed $metricIdsInput,
+        mixed $optionValuesInput,
+        mixed $weightsInput,
+        mixed $impactTypesInput,
+        array $options
+    ): array
     {
-        $lines = preg_split('/\r\n|\r|\n/', trim($raw)) ?: [];
         $metricMap = [];
-
         foreach ((new MetricModel())->getAll(false) as $metric) {
-            $metricMap[(string) $metric['metric_key']] = (int) $metric['id'];
+            $metricMap[(int) $metric['id']] = $metric;
         }
 
+        if ($metricMap === []) {
+            throw new RuntimeException('Cadastre pelo menos uma métrica ativa antes de criar perguntas.');
+        }
+
+        $metricIds = is_array($metricIdsInput) ? array_values($metricIdsInput) : [];
+        $optionValues = is_array($optionValuesInput) ? array_values($optionValuesInput) : [];
+        $weights = is_array($weightsInput) ? array_values($weightsInput) : [];
+        $impactTypes = is_array($impactTypesInput) ? array_values($impactTypesInput) : [];
+        $validOptionValues = array_flip(array_map(
+            static fn (array $option): string => (string) $option['value'],
+            $options
+        ));
+
         $affects = [];
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if ($line === '') {
+        $max = max(count($metricIds), count($optionValues), count($weights), count($impactTypes));
+
+        for ($index = 0; $index < $max; $index++) {
+            $metricId = (int) ($metricIds[$index] ?? 0);
+            $optionValue = trim((string) ($optionValues[$index] ?? ''));
+            $weight = trim((string) ($weights[$index] ?? ''));
+            $impactType = trim((string) ($impactTypes[$index] ?? 'sum'));
+
+            if ($metricId <= 0 && $optionValue === '' && $weight === '' && $impactType === '') {
                 continue;
             }
 
-            $parts = array_map('trim', explode('|', $line));
-            if (count($parts) < 3 || count($parts) > 4) {
-                throw new RuntimeException('Cada relacao de metrica deve seguir metric_key|option_value|weight|impact_type.');
+            if ($metricId <= 0 || !isset($metricMap[$metricId])) {
+                throw new RuntimeException('Toda relação precisa apontar para uma métrica ativa cadastrada.');
             }
 
-            [$metricKey, $optionValue, $weight] = $parts;
-            $impactType = $parts[3] ?? 'sum';
-
-            if ($metricKey === '' || !isset($metricMap[$metricKey])) {
-                throw new RuntimeException('Foi informada uma metrica inexistente no mapeamento da pergunta.');
+            if ($optionValue !== '' && !isset($validOptionValues[$optionValue])) {
+                throw new RuntimeException('O impacto informado referencia uma opção que não existe na pergunta.');
             }
 
             if (!is_numeric($weight)) {
-                throw new RuntimeException('O peso do mapeamento de metrica deve ser numerico.');
+                throw new RuntimeException('O peso do impacto deve ser numérico.');
             }
 
             $affects[] = [
-                'metric_id' => $metricMap[$metricKey],
+                'metric_id' => $metricId,
                 'option_value' => $optionValue,
                 'weight' => (float) $weight,
                 'impact_type' => $impactType !== '' ? $impactType : 'sum',
             ];
         }
 
+        if ($affects === []) {
+            throw new RuntimeException('Cada pergunta precisa afetar pelo menos uma métrica cadastrada.');
+        }
+
         return $affects;
     }
 
-    private function formatOptionsText(array $options): string
+    private function extractQuestionConfigFields(?string $rawJson): array
     {
-        $lines = array_map(static function (array $option): string {
-            return sprintf('%s|%s', (string) ($option['option_value'] ?? ''), (string) ($option['option_label'] ?? ''));
-        }, $options);
+        if ($rawJson === null || trim($rawJson) === '') {
+            return [
+                'input' => 'textarea',
+                'placeholder' => '',
+                'maxlength' => '',
+                'scale_labels' => ['', '', '', '', ''],
+            ];
+        }
 
-        return implode(PHP_EOL, $lines);
+        $decoded = json_decode($rawJson, true);
+        if (!is_array($decoded)) {
+            $decoded = [];
+        }
+
+        $scaleLabels = array_values(array_slice(is_array($decoded['escala'] ?? null) ? $decoded['escala'] : [], 0, 5));
+        while (count($scaleLabels) < 5) {
+            $scaleLabels[] = '';
+        }
+
+        return [
+            'input' => in_array((string) ($decoded['input'] ?? 'textarea'), ['textarea', 'text'], true) ? (string) ($decoded['input'] ?? 'textarea') : 'textarea',
+            'placeholder' => trim((string) (($decoded['attributes']['placeholder'] ?? ''))),
+            'maxlength' => isset($decoded['attributes']['maxlength']) && is_numeric($decoded['attributes']['maxlength'])
+                ? (string) (int) $decoded['attributes']['maxlength']
+                : '',
+            'scale_labels' => array_map(static fn (mixed $label): string => trim((string) $label), $scaleLabels),
+        ];
     }
 
-    private function formatAffectsText(array $affects): string
+    private function buildQuestionConfigJson(array $input, string $questionType): ?string
     {
-        $lines = array_map(static function (array $affect): string {
-            return sprintf(
-                '%s|%s|%s|%s',
-                (string) ($affect['metric_key'] ?? ''),
-                (string) ($affect['option_value'] ?? ''),
-                (string) ($affect['weight'] ?? '1'),
-                (string) ($affect['impact_type'] ?? 'sum')
-            );
-        }, $affects);
+        $config = [];
 
-        return implode(PHP_EOL, $lines);
+        if ($questionType === 'dissertativa') {
+            $inputType = trim((string) ($input['text_input_type'] ?? 'textarea'));
+            $placeholder = trim((string) ($input['text_placeholder'] ?? ''));
+            $maxLength = isset($input['text_maxlength']) ? (int) $input['text_maxlength'] : 0;
+
+            $config['input'] = in_array($inputType, ['textarea', 'text'], true) ? $inputType : 'textarea';
+
+            $attributes = [];
+            if ($placeholder !== '') {
+                $attributes['placeholder'] = $placeholder;
+            }
+            if ($maxLength > 0) {
+                $attributes['maxlength'] = $maxLength;
+            }
+            if ($attributes !== []) {
+                $config['attributes'] = $attributes;
+            }
+        }
+
+        if ($questionType === 'intensidade_1_5') {
+            $rawLabels = is_array($input['scale_labels'] ?? null) ? array_values($input['scale_labels']) : [];
+            $labels = [];
+            for ($index = 0; $index < 5; $index++) {
+                $labels[] = trim((string) ($rawLabels[$index] ?? ''));
+            }
+
+            if (count(array_filter($labels, static fn (string $label): bool => $label !== '')) > 0) {
+                $config['escala'] = $labels;
+            }
+        }
+
+        if ($config === []) {
+            return null;
+        }
+
+        $encoded = json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        return is_string($encoded) ? $encoded : null;
     }
 
     private function pushFlash(string $type, string $message): void

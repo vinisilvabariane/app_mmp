@@ -4,6 +4,7 @@ namespace App\models;
 
 use App\config\Connection;
 use PDO;
+use RuntimeException;
 use Throwable;
 
 class QuestionModel
@@ -84,6 +85,7 @@ class QuestionModel
             $questionId = $this->insertQuestion($pdo, $data);
             $optionMap = $this->replaceOptions($pdo, $questionId, $data['options'] ?? []);
             $this->replaceAffects($pdo, $questionId, $data['affects'] ?? [], $optionMap);
+            $this->rebalanceActiveOrders($pdo, (int) $data['question_order'], $questionId);
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -100,6 +102,12 @@ class QuestionModel
         $pdo->beginTransaction();
 
         try {
+            $currentQuestion = $this->findById($pdo, $id);
+            if ($currentQuestion === null) {
+                throw new RuntimeException('Pergunta nao encontrada para atualizacao.');
+            }
+
+            $temporaryOrder = $this->nextTemporaryOrder($pdo);
             $sql = 'UPDATE questions
                 SET question_key = :question_key,
                     enunciado = :enunciado,
@@ -115,13 +123,18 @@ class QuestionModel
             $statement->bindValue(':question_type', $data['question_type'], PDO::PARAM_STR);
             $statement->bindValue(':allows_multiple', $data['allows_multiple'], PDO::PARAM_INT);
             $statement->bindValue(':is_required', $data['is_required'], PDO::PARAM_INT);
-            $statement->bindValue(':question_order', $data['question_order'], PDO::PARAM_INT);
+            $statement->bindValue(':question_order', $temporaryOrder, PDO::PARAM_INT);
             $statement->bindValue(':config_json', $data['config_json'], $data['config_json'] !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
             $statement->bindValue(':id', $id, PDO::PARAM_INT);
             $statement->execute();
 
             $optionMap = $this->replaceOptions($pdo, $id, $data['options'] ?? []);
             $this->replaceAffects($pdo, $id, $data['affects'] ?? [], $optionMap);
+
+            if ((int) ($currentQuestion['active'] ?? 0) === 1) {
+                $this->rebalanceActiveOrders($pdo, (int) $data['question_order'], $id);
+            }
+
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -138,8 +151,9 @@ class QuestionModel
         $pdo->beginTransaction();
 
         try {
-            $questionSql = 'UPDATE questions SET active = 0 WHERE id = :id';
+            $questionSql = 'UPDATE questions SET active = 0, question_order = :question_order WHERE id = :id';
             $questionStatement = $pdo->prepare($questionSql);
+            $questionStatement->bindValue(':question_order', $this->nextTemporaryOrder($pdo), PDO::PARAM_INT);
             $questionStatement->bindValue(':id', $id, PDO::PARAM_INT);
             $questionStatement->execute();
 
@@ -153,6 +167,7 @@ class QuestionModel
             $affectsStatement->bindValue(':id', $id, PDO::PARAM_INT);
             $affectsStatement->execute();
 
+            $this->rebalanceActiveOrders($pdo, 1);
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {
@@ -190,7 +205,7 @@ class QuestionModel
         $statement->bindValue(':question_type', $data['question_type'], PDO::PARAM_STR);
         $statement->bindValue(':allows_multiple', $data['allows_multiple'], PDO::PARAM_INT);
         $statement->bindValue(':is_required', $data['is_required'], PDO::PARAM_INT);
-        $statement->bindValue(':question_order', $data['question_order'], PDO::PARAM_INT);
+        $statement->bindValue(':question_order', $this->nextTemporaryOrder($pdo), PDO::PARAM_INT);
         $statement->bindValue(':config_json', $data['config_json'], $data['config_json'] !== null ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $statement->execute();
 
@@ -271,5 +286,67 @@ class QuestionModel
             $insertStatement->bindValue(':impact_type', $affect['impact_type'], PDO::PARAM_STR);
             $insertStatement->execute();
         }
+    }
+
+    private function rebalanceActiveOrders(PDO $pdo, int $desiredOrder, ?int $targetQuestionId = null): void
+    {
+        $sql = 'SELECT id
+            FROM questions
+            WHERE active = 1';
+
+        if ($targetQuestionId !== null) {
+            $sql .= ' AND id <> :target_id';
+        }
+
+        $sql .= ' ORDER BY question_order ASC, id ASC';
+
+        $statement = $pdo->prepare($sql);
+        if ($targetQuestionId !== null) {
+            $statement->bindValue(':target_id', $targetQuestionId, PDO::PARAM_INT);
+        }
+        $statement->execute();
+
+        $orderedIds = array_map('intval', $statement->fetchAll(PDO::FETCH_COLUMN));
+
+        if ($targetQuestionId !== null) {
+            $position = max(0, min(count($orderedIds), $desiredOrder - 1));
+            array_splice($orderedIds, $position, 0, [$targetQuestionId]);
+        }
+
+        if ($orderedIds === []) {
+            return;
+        }
+
+        $temporaryStatement = $pdo->prepare('UPDATE questions SET question_order = :question_order WHERE id = :id');
+        $finalStatement = $pdo->prepare('UPDATE questions SET question_order = :question_order WHERE id = :id');
+
+        $temporaryBase = $this->nextTemporaryOrder($pdo);
+        foreach ($orderedIds as $index => $questionId) {
+            $temporaryStatement->bindValue(':question_order', $temporaryBase + $index, PDO::PARAM_INT);
+            $temporaryStatement->bindValue(':id', $questionId, PDO::PARAM_INT);
+            $temporaryStatement->execute();
+        }
+
+        foreach ($orderedIds as $index => $questionId) {
+            $finalStatement->bindValue(':question_order', $index + 1, PDO::PARAM_INT);
+            $finalStatement->bindValue(':id', $questionId, PDO::PARAM_INT);
+            $finalStatement->execute();
+        }
+    }
+
+    private function nextTemporaryOrder(PDO $pdo): int
+    {
+        $maxOrder = (int) $pdo->query('SELECT COALESCE(MAX(question_order), 0) FROM questions')->fetchColumn();
+        return $maxOrder + 1000;
+    }
+
+    private function findById(PDO $pdo, int $id): ?array
+    {
+        $statement = $pdo->prepare('SELECT * FROM questions WHERE id = :id LIMIT 1');
+        $statement->bindValue(':id', $id, PDO::PARAM_INT);
+        $statement->execute();
+
+        $row = $statement->fetch(PDO::FETCH_ASSOC);
+        return is_array($row) ? $row : null;
     }
 }

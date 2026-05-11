@@ -11,14 +11,20 @@ class MetricModel
     public function getAll(bool $includeInactive = true): array
     {
         $pdo = Connection::connect();
-        $sql = 'SELECT *
-            FROM metrics';
+        $sql = 'SELECT
+                m.*,
+                COUNT(DISTINCT CASE WHEN qma.active = 1 THEN qma.id END) AS active_mapping_count,
+                COUNT(DISTINCT CASE WHEN q.active = 1 THEN q.id END) AS active_question_count
+            FROM metrics m
+            LEFT JOIN question_metrics_affects qma ON qma.metric_id = m.id
+            LEFT JOIN questions q ON q.id = qma.question_id';
 
         if (!$includeInactive) {
-            $sql .= ' WHERE active = 1';
+            $sql .= ' WHERE m.active = 1';
         }
 
-        $sql .= ' ORDER BY active DESC, name ASC, id ASC';
+        $sql .= ' GROUP BY m.id
+            ORDER BY m.active DESC, m.name ASC, m.id ASC';
 
         return $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
     }

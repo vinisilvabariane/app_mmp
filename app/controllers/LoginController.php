@@ -124,12 +124,13 @@ class LoginController
 
         try {
             $mailer = new Mailer();
+            $recipientName = (string) ($user['full_name'] ?? $user['email']);
             $mailer->send(
                 (string) $user['email'],
-                (string) ($user['full_name'] ?? $user['email']),
+                $recipientName,
                 'Reset de senha - Map My Path',
-                '<p>Uma nova senha temporaria foi gerada para sua conta.</p><p><strong>Senha temporaria:</strong> ' . htmlspecialchars($temporaryPassword, ENT_QUOTES, 'UTF-8') . '</p><p>No primeiro acesso, voce precisara definir uma nova senha.</p>',
-                'Senha temporaria: ' . $temporaryPassword . '. No primeiro acesso, voce precisara definir uma nova senha.'
+                $this->buildPasswordResetEmailHtml($recipientName, $temporaryPassword),
+                $this->buildPasswordResetEmailText($temporaryPassword)
             );
         } catch (RuntimeException $exception) {
             $this->jsonResponse([
@@ -254,6 +255,35 @@ class LoginController
     private function generateTemporaryPassword(): string
     {
         return substr(str_replace(['+', '/', '='], '', base64_encode(random_bytes(12))), 0, 12);
+    }
+
+    private function buildPasswordResetEmailHtml(string $recipientName, string $temporaryPassword): string
+    {
+        return $this->renderEmailTemplate('password-reset.html', [
+            '{{recipient_name}}' => htmlspecialchars($recipientName, ENT_QUOTES, 'UTF-8'),
+            '{{temporary_password}}' => htmlspecialchars($temporaryPassword, ENT_QUOTES, 'UTF-8'),
+            '{{login_url}}' => htmlspecialchars($this->route('/login'), ENT_QUOTES, 'UTF-8'),
+        ]);
+    }
+
+    private function buildPasswordResetEmailText(string $temporaryPassword): string
+    {
+        return $this->renderEmailTemplate('password-reset.txt', [
+            '{{temporary_password}}' => $temporaryPassword,
+            '{{login_url}}' => $this->route('/login'),
+        ]);
+    }
+
+    private function renderEmailTemplate(string $templateName, array $replacements): string
+    {
+        $templatePath = dirname(__DIR__, 2) . '/template/email/' . $templateName;
+        $template = @file_get_contents($templatePath);
+
+        if ($template === false) {
+            throw new RuntimeException('Template de email nao encontrado: ' . $templateName);
+        }
+
+        return strtr($template, $replacements);
     }
 
     private function basePath(): string

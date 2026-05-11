@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressFill = document.getElementById('wizard-progress-fill')
     const progressText = document.getElementById('wizard-progress-text')
     const stepper = document.getElementById('wizard-stepper')
+    const submitUrl = form?.dataset.submitUrl || ''
+    const successUrl = form?.dataset.successUrl || ''
 
     if (!form || !track || !prevBtn || !nextBtn || !submitBtn || !stepper) {
         return
@@ -115,12 +117,29 @@ document.addEventListener('DOMContentLoaded', function () {
             step.dataset.step = String(index + 1)
             step.dataset.questionId = question.id
 
+            const card = document.createElement('div')
+            card.className = 'wizard-step-card'
+
+            const header = document.createElement('div')
+            header.className = 'wizard-step-header'
+
+            const eyebrow = document.createElement('span')
+            eyebrow.className = 'wizard-step-eyebrow'
+            eyebrow.textContent = `Pergunta ${index + 1}`
+
             const legend = document.createElement('legend')
             legend.className = 'wizard-question'
             legend.textContent = question.enunciado
 
-            step.appendChild(legend)
-            step.appendChild(renderQuestionField(question))
+            const body = document.createElement('div')
+            body.className = 'wizard-answer-zone'
+            body.appendChild(renderQuestionField(question))
+
+            header.appendChild(eyebrow)
+            header.appendChild(legend)
+            card.appendChild(header)
+            card.appendChild(body)
+            step.appendChild(card)
             track.appendChild(step)
         })
     }
@@ -129,10 +148,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const steps = Array.from(track.querySelectorAll('.wizard-step'))
     if (steps.length === 0) {
+        if (progressFill) {
+            progressFill.style.width = '0%'
+        }
+        if (progressText) {
+            progressText.textContent = 'Nenhuma pergunta ativa disponivel no momento.'
+        }
+        stepper.innerHTML = ''
+        track.innerHTML = `
+            <section class="wizard-empty-state">
+                <h2>Nenhuma pergunta disponivel</h2>
+                <p>O formulario sera exibido automaticamente assim que houver perguntas ativas cadastradas.</p>
+            </section>
+        `
+        prevBtn.disabled = true
+        nextBtn.disabled = true
+        submitBtn.disabled = true
+        submitBtn.classList.add('d-none')
         return
     }
 
     let current = 0
+    let pending = false
     const total = steps.length
     const stepButtons = []
 
@@ -160,6 +197,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         toastr[type](message)
+    }
+
+    const collectAnswers = () => {
+        const payload = { answers: {} }
+
+        QUESTION_DEFINITIONS.forEach((question) => {
+            if (!question || !question.id) {
+                return
+            }
+
+            if (question.tipo === 'multipla_escolha' && question.multipla) {
+                payload.answers[question.id] = Array.from(
+                    form.querySelectorAll(`input[name="${question.id}[]"]:checked`)
+                ).map((input) => String(input.value || '').trim()).filter(Boolean)
+                return
+            }
+
+            if (question.tipo === 'multipla_escolha' || question.tipo === 'intensidade_1_5') {
+                const checked = form.querySelector(`input[name="${question.id}"]:checked`)
+                payload.answers[question.id] = checked ? String(checked.value || '').trim() : ''
+                return
+            }
+
+            const input = form.querySelector(`[name="${question.id}"]`)
+            payload.answers[question.id] = input ? String(input.value || '').trim() : ''
+        })
+
+        return payload
     }
 
     const getQuestionText = (step) => {
@@ -374,6 +439,10 @@ document.addEventListener('DOMContentLoaded', function () {
             button.setAttribute('aria-label', `Ir para a pergunta ${index + 1}`)
             button.title = getQuestionText(step)
             button.addEventListener('click', () => {
+                if (pending) {
+                    return
+                }
+
                 current = index
                 updateWizard()
                 const firstInput = step.querySelector('input, textarea, select')
@@ -393,15 +462,31 @@ document.addEventListener('DOMContentLoaded', function () {
             button.classList.toggle('is-current', index === current)
             button.classList.toggle('is-complete', !invalidSteps.has(index) && state.answered)
             button.classList.toggle('is-invalid', invalidSteps.has(index))
+            button.disabled = pending
         })
+    }
+
+    const syncTrackHeight = () => {
+        const activeStep = steps[current]
+        if (!activeStep || !track) {
+            return
+        }
+
+        const activeHeight = activeStep.scrollHeight + 12
+        if (activeHeight > 0) {
+            track.style.height = `${activeHeight}px`
+        }
     }
 
     const updateWizard = () => {
         steps.forEach((step, index) => {
             step.classList.toggle('active', index === current)
             step.setAttribute('aria-hidden', index === current ? 'false' : 'true')
+            step.hidden = index !== current
         })
-        track.style.transform = `translateX(-${current * 100}%)`
+
+        syncTrackHeight()
+
         const progress = ((current + 1) / total) * 100
         if (progressFill) {
             progressFill.style.width = `${progress}%`
@@ -413,17 +498,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 : `Pergunta ${current + 1} de ${total} - tudo preenchido`
         }
 
-        prevBtn.disabled = current === 0
+        prevBtn.disabled = pending || current === 0
 
         const isLast = current === total - 1
         nextBtn.classList.toggle('d-none', isLast)
         submitBtn.classList.toggle('d-none', !isLast)
+        nextBtn.disabled = pending
+        submitBtn.disabled = pending
 
         updateStepMeta()
         updateStepper()
     }
 
     prevBtn.addEventListener('click', () => {
+        if (pending) {
+            return
+        }
+
         if (current > 0) {
             current -= 1
             updateWizard()
@@ -431,6 +522,10 @@ document.addEventListener('DOMContentLoaded', function () {
     })
 
     nextBtn.addEventListener('click', () => {
+        if (pending) {
+            return
+        }
+
         const validation = validateStep(current, {
             focusOnError: true,
             showToastOnError: true
@@ -448,8 +543,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     })
 
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => {
         event.preventDefault()
+
+        if (pending) {
+            return
+        }
 
         const invalidSteps = collectInvalidRequiredSteps()
 
@@ -466,12 +565,40 @@ document.addEventListener('DOMContentLoaded', function () {
             return
         }
 
-        showToast('success', 'Formulario enviado com sucesso!')
+        if (!submitUrl) {
+            showToast('error', 'A rota de envio do formulario nao foi configurada.')
+            return
+        }
 
-        form.reset()
-        steps.forEach(clearStepErrors)
-        current = 0
+        pending = true
         updateWizard()
+
+        try {
+            const response = await fetch(submitUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(collectAnswers())
+            })
+
+            const payload = await response.json()
+            if (!response.ok || !payload.ok) {
+                throw new Error(payload.message || 'Nao foi possivel processar o formulario.')
+            }
+
+            showToast('success', payload.message || 'Formulario enviado com sucesso.')
+
+            window.setTimeout(() => {
+                window.location.href = payload.redirect || successUrl || window.location.href
+            }, 400)
+        } catch (error) {
+            showToast('error', error.message || 'Nao foi possivel enviar o formulario.')
+        } finally {
+            pending = false
+            updateWizard()
+        }
     })
 
     form.addEventListener('input', (event) => {
@@ -493,19 +620,13 @@ document.addEventListener('DOMContentLoaded', function () {
         clearStepErrors(step)
         updateWizard()
 
-        if (event.target.matches('input[type="radio"]')) {
-            const stepIndex = steps.indexOf(step)
-            if (stepIndex === current && stepIndex < total - 1 && validateStep(stepIndex).valid) {
-                window.setTimeout(() => {
-                    current += 1
-                    updateWizard()
-                }, 180)
-            }
+        if (pending) {
+            return
         }
     })
 
     document.addEventListener('keydown', (event) => {
-        if (!event.altKey) {
+        if (!event.altKey || pending) {
             return
         }
 
@@ -519,6 +640,8 @@ document.addEventListener('DOMContentLoaded', function () {
             prevBtn.click()
         }
     })
+
+    window.addEventListener('resize', syncTrackHeight)
 
     buildStepper()
     updateWizard()
