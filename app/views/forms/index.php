@@ -95,20 +95,28 @@ $questionsDefinitionJson = json_encode($questionsDefinition ?? [], JSON_UNESCAPE
                         id="education-interest-form"
                         class="wizard-form"
                         data-submit-url="<?= $basePath ?>/forms/save"
-                        data-success-url="<?= $basePath ?>/profile"
+                        data-success-url="<?= $basePath ?>/trail"
+                        novalidate
                     >
                         <div class="wizard-track" id="wizard-track"></div>
 
                         <div class="wizard-actions">
-                            <button type="button" class="btn btn-outline-primary" id="wizard-prev" disabled>
-                                <i class="bi bi-arrow-left me-2"></i>Voltar
-                            </button>
-                            <button type="button" class="btn btn-primary" id="wizard-next">
-                                Próximo<i class="bi bi-arrow-right ms-2"></i>
-                            </button>
-                            <button type="submit" class="btn btn-primary d-none" id="wizard-submit">
-                                <i class="bi bi-send-check me-2"></i>Finalizar
-                            </button>
+                            <div class="wizard-actions-utility">
+                                <button type="button" class="btn btn-outline-primary" id="wizard-random-submit">
+                                    <i class="bi bi-shuffle me-2"></i>Gerar trilha teste
+                                </button>
+                            </div>
+                            <div class="wizard-actions-nav">
+                                <button type="button" class="btn btn-outline-primary" id="wizard-prev" disabled>
+                                    <i class="bi bi-arrow-left me-2"></i>Voltar
+                                </button>
+                                <button type="button" class="btn btn-primary" id="wizard-next">
+                                    Próximo<i class="bi bi-arrow-right ms-2"></i>
+                                </button>
+                                <button type="submit" class="btn btn-primary d-none" id="wizard-submit">
+                                    <i class="bi bi-send-check me-2"></i>Finalizar
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>

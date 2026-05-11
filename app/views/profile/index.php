@@ -4,6 +4,8 @@ use App\config\Auth;
 $basePath = isset($_SERVER['APP_BASE_PATH']) ? (string) $_SERVER['APP_BASE_PATH'] : '';
 $globalStylePath = __DIR__ . '/../../../public/css/global/style.css';
 $globalStyleVersion = file_exists($globalStylePath) ? filemtime($globalStylePath) : time();
+$profileScriptPath = __DIR__ . '/../../../public/js/profile/script.js';
+$profileScriptVersion = file_exists($profileScriptPath) ? filemtime($profileScriptPath) : time();
 $authUser = Auth::user();
 $authUserName = trim((string) ($authUser['full_name'] ?? ''));
 $authUserEmail = trim((string) ($authUser['email'] ?? ''));
@@ -72,11 +74,11 @@ $formattedLoginAt = mmp_format_login_at($authLoginAt);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil</title>
 
-    <link rel="icon" href="<?= $basePath ?>/public/img/com-fundo-maior.png">
+    <link rel="icon" type="image/png" href="<?= $basePath ?>/public/img/logo-v2.png" sizes="512x512">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="<?= $basePath ?>/public/css/global/style.css?v=<?= $globalStyleVersion ?>">
-    <link rel="stylesheet" href="https://unpkg.com/cropperjs/dist/cropper.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
 <body class="admin-page">
 
@@ -104,7 +106,6 @@ $formattedLoginAt = mmp_format_login_at($authLoginAt);
                     </div>
 
                     <nav class="profile-menu mt-4">
-                        <a href="#" class="profile-link" data-tab="trail">Minha trilha</a>
                         <a href="#" class="profile-link active" data-tab="profile">Minhas informacoes</a>
                         <a href="#" class="profile-link" data-tab="photo">Minha foto</a>
                     </nav>
@@ -119,39 +120,7 @@ $formattedLoginAt = mmp_format_login_at($authLoginAt);
 
             <div class="col-lg-8 col-xl-9">
                 <div class="card profile-main-card p-4 p-lg-5">
-                    <div class="tab-content active" id="tab-trail">
-                        <header class="main-header">
-                            <h2 class="system-title">Minha trilha</h2>
-                            <p class="system-subtitle">Seu plano de aprendizado personalizado gerado a partir do formulario e da analise da IA.</p>
-                        </header>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-4">
-                                <div class="card p-3 text-center profile-stat-card">
-                                    <h6>Execucao estimada</h6>
-                                    <h3 id="progressPercent">0%</h3>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <div class="card p-3 text-center profile-stat-card">
-                                    <h6>Carga total</h6>
-                                    <h3 id="totalTime">0h</h3>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <div class="card p-3 text-center profile-stat-card">
-                                    <h6>Etapas</h6>
-                                    <h3 id="completedCount">0</h3>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="learning-flow" id="learningFlow"></div>
-                    </div>
-
-                    <div class="tab-content" id="tab-profile">
+                    <div class="tab-content active" id="tab-profile">
                         <header class="main-header">
                             <h2 class="system-title">Minhas informacoes</h2>
                             <p class="system-subtitle">Resumo da conta usada para acessar o sistema e acompanhar sua trilha.</p>
@@ -243,11 +212,11 @@ $formattedLoginAt = mmp_format_login_at($authLoginAt);
 <?php include_once __DIR__ . '/../../../includes/footer.php'; ?>
 <?php include_once __DIR__ . '/../../../includes/dependencies.php'; ?>
 
-<script src="https://unpkg.com/cropperjs/dist/cropper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <script>
     window.BASE_PATH = "<?= $basePath ?>";
 </script>
-<script src="<?= $basePath ?>/public/js/profile/script.js"></script>
+<script src="<?= $basePath ?>/public/js/profile/script.js?v=<?= $profileScriptVersion ?>"></script>
 
 </body>
 </html>

@@ -69,11 +69,6 @@ class FormAnalysisService
 
     private function calculateRegisteredMetrics(array $questions, array $answers): array
     {
-        $metrics = [];
-        foreach ((new MetricModel())->getAll(false) as $metric) {
-            $metrics[(string) $metric['metric_key']] = 50.0;
-        }
-
         $accumulators = [];
         foreach ($questions as $question) {
             $answerValues = $this->normalizeAnswerValues($answers[(string) $question['question_key']] ?? null);
@@ -107,6 +102,7 @@ class FormAnalysisService
             }
         }
 
+        $metrics = [];
         foreach ($accumulators as $metricKey => $bucket) {
             $weightTotal = (float) ($bucket['weight_total'] ?? 0);
             if ($weightTotal <= 0) {
@@ -156,16 +152,31 @@ class FormAnalysisService
 
     private function mergeMetrics(array $registeredMetrics, array $inferredMetrics): array
     {
-        $merged = $registeredMetrics;
+        $merged = [];
 
         foreach ($inferredMetrics as $metricKey => $value) {
             if (!is_numeric($value)) {
                 continue;
             }
 
-            if (!array_key_exists((string) $metricKey, $merged)) {
-                $merged[(string) $metricKey] = round((float) $value, 2);
+            $merged[(string) $metricKey] = round((float) $value, 2);
+        }
+
+        foreach ($registeredMetrics as $metricKey => $value) {
+            if (!is_numeric($value)) {
+                continue;
             }
+
+            $merged[(string) $metricKey] = round((float) $value, 2);
+        }
+
+        foreach ((new MetricModel())->getAll(false) as $metricRow) {
+            $metricKey = (string) ($metricRow['metric_key'] ?? '');
+            if ($metricKey === '' || array_key_exists($metricKey, $merged)) {
+                continue;
+            }
+
+            $merged[$metricKey] = 50.0;
         }
 
         return $merged;
@@ -212,18 +223,47 @@ class FormAnalysisService
 
     private function buildRouteQuestion(array $questions, array $answers): string
     {
-        foreach ($questions as $question) {
-            if ((string) $question['question_type'] !== 'dissertativa') {
-                continue;
-            }
+        $course = $this->answerForQuestionKey($answers, 'anamnese_q06_curso_graduacao');
+        $mathBase = $this->answerForQuestionKey($answers, 'anamnese_q01_base_matematica');
+        $mathDifficulties = $this->answerForQuestionKey($answers, 'anamnese_q02_dificuldades_medio');
+        $priorDifficulties = $this->answerForQuestionKey($answers, 'anamnese_q16_areas_dificuldade');
+        $studyPreference = $this->answerForQuestionKey($answers, 'anamnese_q13_preferencia_conteudos');
 
-            $answerValues = $this->normalizeAnswerValues($answers[(string) $question['question_key']] ?? null);
-            if ($answerValues !== []) {
-                return 'Monte uma trilha de aprendizagem personalizada considerando que o estudante respondeu: ' . $answerValues[0];
-            }
+        $segments = [
+            'Monte uma trilha de aprendizagem personalizada com foco principal na disciplina de Calculo',
+        ];
+
+        if ($course !== '') {
+            $segments[] = 'para um estudante do curso de ' . $course;
         }
 
-        return 'Monte uma trilha de aprendizagem personalizada com base no formulario pedagogico respondido pelo estudante.';
+        $contextParts = [];
+        if ($mathBase !== '') {
+            $contextParts[] = 'base atual em Matematica: ' . $mathBase;
+        }
+        if ($mathDifficulties !== '') {
+            $contextParts[] = 'dificuldades de base: ' . $mathDifficulties;
+        }
+        if ($priorDifficulties !== '') {
+            $contextParts[] = 'outras dificuldades academicas: ' . $priorDifficulties;
+        }
+        if ($studyPreference !== '') {
+            $contextParts[] = 'preferencia de estudo: ' . $studyPreference;
+        }
+
+        if ($contextParts !== []) {
+            $segments[] = 'considerando o seguinte contexto do formulario: ' . implode('; ', $contextParts);
+        }
+
+        $segments[] = 'Priorize fundamentos, prerequisitos matematicos, aplicacoes de Calculo na Engenharia e recursos objetivos para estudo.';
+
+        return implode(' ', $segments) . '.';
+    }
+
+    private function answerForQuestionKey(array $answers, string $questionKey): string
+    {
+        $values = $this->normalizeAnswerValues($answers[$questionKey] ?? null);
+        return $values !== [] ? implode(', ', $values) : '';
     }
 
     private function normalizeAnswerValues(mixed $value): array

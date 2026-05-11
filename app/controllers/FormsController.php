@@ -37,13 +37,13 @@ class FormsController
                 $this->jsonResponse([
                     'ok' => true,
                     'message' => 'Respostas processadas e trilha gerada com sucesso.',
-                    'redirect' => $this->route('/profile'),
+                    'redirect' => $this->route('/trail?fresh=1'),
                     'submission_id' => $result['submission_id'] ?? null,
                 ]);
                 return;
             }
 
-            header('Location: ' . $this->route('/profile'));
+            header('Location: ' . $this->route('/trail?fresh=1'));
             exit;
         } catch (Exception $e) {
             $this->jsonOrRedirectError('Erro ao processar respostas: ' . $e->getMessage(), '/forms', 500);
@@ -67,13 +67,13 @@ class FormsController
                 $this->jsonResponse([
                     'ok' => true,
                     'message' => 'Questionario atualizado e trilha recalculada com sucesso.',
-                    'redirect' => $this->route('/profile'),
+                    'redirect' => $this->route('/trail?status=updated'),
                     'submission_id' => $result['submission_id'] ?? null,
                 ]);
                 return;
             }
 
-            header('Location: ' . $this->route('/profile?status=updated'));
+            header('Location: ' . $this->route('/trail?status=updated'));
             exit;
         } catch (Exception $e) {
             $this->jsonOrRedirectError('Erro ao atualizar: ' . $e->getMessage(), '/forms', 500);

@@ -11,6 +11,7 @@ $dashboardUrl = ($basePath !== '' ? $basePath : '') . '/dashboard';
 $dashboardQuestionsUrl = ($basePath !== '' ? $basePath : '') . '/dashboard/questions';
 $dashboardMetricsUrl = ($basePath !== '' ? $basePath : '') . '/dashboard/metrics';
 $chatUrl = ($basePath !== '' ? $basePath : '') . '/chat';
+$trailUrl = ($basePath !== '' ? $basePath : '') . '/trail';
 $profileUrl = ($basePath !== '' ? $basePath : '') . '/profile';
 $authUser = Auth::user();
 $authUserName = trim((string) ($authUser['full_name'] ?? ''));
@@ -54,6 +55,9 @@ $authUserInitials = mmp_initials($authUserName);
                 </a>
                 <a href="<?= $formsUrl ?>" class="nav-link-item <?= $currentRoute === '/forms' ? 'active' : '' ?>">
                     Formulario
+                </a>
+                <a href="<?= $trailUrl ?>" class="nav-link-item <?= $currentRoute === '/trail' ? 'active' : '' ?>">
+                    Minha trilha
                 </a>
                 <a href="<?= $chatUrl ?>" class="nav-link-item <?= $currentRoute === '/chat' ? 'active' : '' ?>">
                     Chat

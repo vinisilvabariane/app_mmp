@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const prevBtn = document.getElementById('wizard-prev')
     const nextBtn = document.getElementById('wizard-next')
     const submitBtn = document.getElementById('wizard-submit')
+    const randomSubmitBtn = document.getElementById('wizard-random-submit')
     const progressFill = document.getElementById('wizard-progress-fill')
     const progressText = document.getElementById('wizard-progress-text')
     const stepper = document.getElementById('wizard-stepper')
@@ -225,6 +226,120 @@ document.addEventListener('DOMContentLoaded', function () {
         })
 
         return payload
+    }
+
+    const randomFromList = (items) => items[Math.floor(Math.random() * items.length)]
+
+    const sampleTextAnswer = (question) => {
+        const key = String(question.id || '')
+        if (key === 'anamnese_q06_curso_graduacao') {
+            return randomFromList([
+                'Engenharia de Computacao',
+                'Engenharia Civil',
+                'Engenharia Mecanica',
+                'Engenharia Eletrica'
+            ])
+        }
+        if (key === 'anamnese_q16_areas_dificuldade') {
+            return randomFromList([
+                'Tenho dificuldade em algebra, funcoes e interpretacao de problemas.',
+                'Meu maior problema hoje esta em trigonometria, organizacao dos estudos e exercicios de calculo.',
+                'Sinto dificuldade em base matematica e em manter constancia de estudo durante a semana.'
+            ])
+        }
+        return randomFromList([
+            'Resposta de teste gerada automaticamente para simulacao.',
+            'Perfil de teste criado para validar a geracao da trilha.',
+            'Aluno de teste com respostas simuladas para avaliacao do sistema.'
+        ])
+    }
+
+    const chooseRandomValues = (question) => {
+        if (question.tipo === 'dissertativa') {
+            return [sampleTextAnswer(question)]
+        }
+
+        if (question.tipo === 'intensidade_1_5') {
+            return [String(Math.floor(Math.random() * 5) + 1)]
+        }
+
+        const options = Array.isArray(question.opcoes) ? question.opcoes : buildScaleOptions(question)
+        const optionValues = options.map((option) => String(option.value || '').trim()).filter(Boolean)
+        if (optionValues.length === 0) {
+            return []
+        }
+
+        if (question.multipla) {
+            const shuffled = [...optionValues].sort(() => Math.random() - 0.5)
+            const count = Math.max(1, Math.min(shuffled.length, Math.floor(Math.random() * Math.min(3, shuffled.length)) + 1))
+            return shuffled.slice(0, count)
+        }
+
+        return [randomFromList(optionValues)]
+    }
+
+    const applyRandomAnswers = () => {
+        QUESTION_DEFINITIONS.forEach((question) => {
+            const randomValues = chooseRandomValues(question)
+
+            if (question.tipo === 'dissertativa') {
+                const input = form.querySelector(`[name="${question.id}"]`)
+                if (input) {
+                    input.value = randomValues[0] || ''
+                }
+                return
+            }
+
+            if (question.tipo === 'multipla_escolha' && question.multipla) {
+                const inputs = Array.from(form.querySelectorAll(`input[name="${question.id}[]"]`))
+                inputs.forEach((input) => {
+                    input.checked = randomValues.includes(String(input.value || '').trim())
+                })
+                return
+            }
+
+            const inputs = Array.from(form.querySelectorAll(`input[name="${question.id}"]`))
+            inputs.forEach((input) => {
+                input.checked = randomValues.includes(String(input.value || '').trim())
+            })
+        })
+    }
+
+    const submitCurrentForm = async () => {
+        if (!submitUrl) {
+            showToast('error', 'A rota de envio do formulario nao foi configurada.')
+            return
+        }
+
+        pending = true
+        updateWizard()
+
+        try {
+            const response = await fetch(submitUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(collectAnswers())
+            })
+
+            const payload = await response.json()
+            if (!response.ok || !payload.ok) {
+                throw new Error(payload.message || 'Nao foi possivel processar o formulario.')
+            }
+
+            showToast('success', payload.message || 'Formulario enviado com sucesso.')
+
+            window.setTimeout(() => {
+                window.location.href = payload.redirect || successUrl || window.location.href
+            }, 400)
+        } catch (error) {
+            showToast('error', error.message || 'Nao foi possivel enviar o formulario.')
+        } finally {
+            pending = false
+            updateWizard()
+        }
     }
 
     const getQuestionText = (step) => {
@@ -565,41 +680,22 @@ document.addEventListener('DOMContentLoaded', function () {
             return
         }
 
-        if (!submitUrl) {
-            showToast('error', 'A rota de envio do formulario nao foi configurada.')
-            return
-        }
+        await submitCurrentForm()
+    })
 
-        pending = true
-        updateWizard()
-
-        try {
-            const response = await fetch(submitUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify(collectAnswers())
-            })
-
-            const payload = await response.json()
-            if (!response.ok || !payload.ok) {
-                throw new Error(payload.message || 'Nao foi possivel processar o formulario.')
+    if (randomSubmitBtn) {
+        randomSubmitBtn.addEventListener('click', async () => {
+            if (pending) {
+                return
             }
 
-            showToast('success', payload.message || 'Formulario enviado com sucesso.')
-
-            window.setTimeout(() => {
-                window.location.href = payload.redirect || successUrl || window.location.href
-            }, 400)
-        } catch (error) {
-            showToast('error', error.message || 'Nao foi possivel enviar o formulario.')
-        } finally {
-            pending = false
+            applyRandomAnswers()
+            current = total - 1
             updateWizard()
-        }
-    })
+            showToast('success', 'Respostas aleatorias geradas. Enviando formulario de teste...')
+            await submitCurrentForm()
+        })
+    }
 
     form.addEventListener('input', (event) => {
         const step = event.target.closest('.wizard-step')

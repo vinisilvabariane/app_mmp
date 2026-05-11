@@ -8,6 +8,7 @@ use App\routers\FormsRouter;
 use App\routers\HomeRouter;
 use App\routers\LoginRouter;
 use App\routers\ProfileRouter;
+use App\routers\TrailRouter;
 
 class Router
 {
@@ -39,6 +40,8 @@ class Router
             '/dashboard/metrics/delete' => [DashboardRouter::class, 'deleteMetric'],
             '/chat' => [ChatRouter::class, 'index'],
             '/chat/message' => [ChatRouter::class, 'message'],
+            '/trail' => [TrailRouter::class, 'index'],
+            '/trail/data' => [TrailRouter::class, 'data'],
             '/profile' => [ProfileRouter::class, 'index'],
             '/profile/trail' => [ProfileRouter::class, 'trail'],
         ];

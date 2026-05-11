@@ -204,6 +204,77 @@ class RegisterForms
         $this->updateSubmissionStatusInConnection($pdo, $submissionId, $status);
     }
 
+    public function getAnswersBySubmissionId(int $submissionId): array
+    {
+        $pdo = Connection::connect();
+        $statement = $pdo->prepare(
+            'SELECT
+                qa.answer_text,
+                qa.answer_value,
+                qa.answer_json,
+                q.question_key,
+                q.enunciado,
+                q.question_type,
+                q.question_order
+             FROM question_answers qa
+             INNER JOIN questions q ON q.id = qa.question_id
+             WHERE qa.submission_id = :submission_id
+             ORDER BY q.question_order ASC, qa.id ASC'
+        );
+        $statement->bindValue(':submission_id', $submissionId, PDO::PARAM_INT);
+        $statement->execute();
+
+        $rows = $statement->fetchAll(PDO::FETCH_ASSOC);
+        if ($rows === []) {
+            return [];
+        }
+
+        $answersByQuestion = [];
+        foreach ($rows as $row) {
+            $questionKey = (string) ($row['question_key'] ?? '');
+            if ($questionKey === '') {
+                continue;
+            }
+
+            if (!isset($answersByQuestion[$questionKey])) {
+                $answersByQuestion[$questionKey] = [
+                    'question_key' => $questionKey,
+                    'enunciado' => (string) ($row['enunciado'] ?? ''),
+                    'question_type' => (string) ($row['question_type'] ?? ''),
+                    'question_order' => (int) ($row['question_order'] ?? 0),
+                    'answers' => [],
+                ];
+            }
+
+            $answerText = trim((string) ($row['answer_text'] ?? ''));
+            if ($answerText !== '') {
+                $answersByQuestion[$questionKey]['answers'][] = $answerText;
+                continue;
+            }
+
+            $answerValue = trim((string) ($row['answer_value'] ?? ''));
+            if ($answerValue !== '') {
+                $answersByQuestion[$questionKey]['answers'][] = $answerValue;
+                continue;
+            }
+
+            $answerJson = $row['answer_json'] ?? null;
+            if (is_string($answerJson) && trim($answerJson) !== '') {
+                $decoded = json_decode($answerJson, true);
+                if (is_array($decoded)) {
+                    foreach ($decoded as $item) {
+                        $itemText = trim((string) $item);
+                        if ($itemText !== '') {
+                            $answersByQuestion[$questionKey]['answers'][] = $itemText;
+                        }
+                    }
+                }
+            }
+        }
+
+        return array_values($answersByQuestion);
+    }
+
     private function updateSubmissionStatusInConnection(PDO $pdo, int $submissionId, string $status): void
     {
         $statement = $pdo->prepare('UPDATE form_submissions SET status = :status WHERE id = :id');
